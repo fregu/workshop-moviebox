@@ -88,3 +88,32 @@ yarn test
 ```
 
 ## Flow types
+
+```bash
+yarn add --dev flow-bin babel-preset-flow
+```
+
+.babelrc
+
+```
+{
+  "presets": ["flow"]
+}
+```
+
+```bash
+yarn run flow init
+yarn run flow
+```
+
+```js
+// @flow
+...
+type Props = {
+  color: string,
+  children: any
+}
+export default ({ children, color = 'red' }: Props) => (
+  ...
+)
+```
