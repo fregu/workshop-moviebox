@@ -1,3 +1,7 @@
 .Test {
-  color: red
+  color: red;
+}
+
+.Test[data-color='blue'] {
+  color: blue;
 }
