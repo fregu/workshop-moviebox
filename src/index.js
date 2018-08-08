@@ -1,9 +1,16 @@
-import React from 'react'
+import React, { Fragment } from 'react'
 import ReactDOM from 'react-dom'
-import Test from 'components/Test'
+import { Provider } from 'react-redux'
 
-const App = () => {
-  return <Test color="blue">Hello React!</Test>
-}
+import Test from 'components/Test'
+import createStore from 'store'
+
+const store = createStore()
+
+const App = () => (
+  <Provider store={store}>
+    <Test color="blue">Hello Redux!</Test>
+  </Provider>
+)
 
 ReactDOM.render(<App />, document.getElementById('app'))

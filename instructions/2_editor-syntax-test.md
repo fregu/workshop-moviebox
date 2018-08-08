@@ -106,6 +106,13 @@ yarn run flow init
 yarn run flow
 ```
 
+.flowconfig
+
+```
+[options]
+module.name_mapper='^\(.*\)$' -> '<PROJECT_ROOT>/src/\1'
+```
+
 ```js
 // @flow
 ...
