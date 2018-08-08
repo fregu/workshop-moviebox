@@ -1,3 +1,5 @@
+import { tmdb } from './tmdb'
+
 export const logger = ({ dispatch, getState }) => next => action => {
   console.log('dispatching', action)
   let result = next(action)
@@ -5,4 +7,4 @@ export const logger = ({ dispatch, getState }) => next => action => {
   return result
 }
 
-export default [logger]
+export default [tmdb, logger]
