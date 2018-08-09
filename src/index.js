@@ -6,10 +6,9 @@ import { BrowserRouter, Link, Route, Switch } from 'react-router-dom'
 import ApolloClient from 'apollo-boost'
 import { ApolloProvider } from 'react-apollo'
 
-import Home from 'views/Home'
-import Movie from 'views/Movie'
-
 import createStore from 'store'
+
+import App from './App'
 
 const store = createStore()
 
@@ -17,17 +16,14 @@ const client = new ApolloClient({
   uri: '//localhost:5500/graphql'
 })
 
-const App = () => (
+const Root = () => (
   <Provider store={store}>
     <ApolloProvider client={client}>
       <BrowserRouter>
-        <Switch>
-          <Route exact path="/movies/:id" component={Movie} />
-          <Route component={Home} />
-        </Switch>
+        <App />
       </BrowserRouter>
     </ApolloProvider>
   </Provider>
 )
 
-ReactDOM.render(<App />, document.getElementById('app'))
+ReactDOM.hydrate(<Root />, document.getElementById('app'))

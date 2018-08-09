@@ -1,19 +1,30 @@
+require('ignore-styles')
+
+require('babel-register')({
+  ignore: [/(node_modules)/],
+  presets: ['env', 'react', 'flow']
+})
+
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import webpackMiddleware from 'webpack-dev-middleware'
 import webpack from 'webpack'
 import path from 'path'
-import webpackConfig from './webpack.config.js'
+//import serverRender from './src/server'
+import webpackConfig from './webpack.config.server'
 import expressGraphQL from 'express-graphql'
 import schema from './schema/schema' // our schema file
 
 dotenv.config()
 
+function serverRender(req, res, next) {}
 const app = express()
-app.get('env')
-app.use(cors())
 
+app.use('/static', express.static('dist'))
+app.use('/favicon.ico', (req, res, next) => {})
+
+app.use(cors())
 app.use(
   '/graphql',
   expressGraphQL({
@@ -22,21 +33,19 @@ app.use(
   })
 )
 
-const compiler = webpack(webpackConfig)
-app.use(webpackMiddleware(compiler))
-// Fallback when no previous route was matched
-app.use('*', (req, res, next) => {
-  const filename = path.resolve(compiler.outputPath, 'index.html')
-  compiler.outputFileSystem.readFile(filename, (err, result) => {
-    if (err) {
-      return next(err)
-    }
-    res.set('content-type', 'text/html')
-    res.send(result)
-    res.end()
-  })
+// app.use('/*', serverRender)
+const compiler = webpack({
+  ...webpackConfig,
+  mode: process.env.NODE_ENV || 'development'
 })
 
-app.listen(5500, () => {
-  console.log('Listening')
+app.use(
+  webpackMiddleware(compiler, {
+    serverSideRender: true
+  })
+)
+
+const port = process.env.PORT || 5500
+app.listen(port, () => {
+  console.log(`Listening on http://localhost:${port}`)
 })
