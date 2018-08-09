@@ -14,7 +14,7 @@ yarn add --dev webpack webpack-cli html-webpack-plugin webpack-dev-server
 
 ```json
   "scripts": {
-    "start": "webpack-dev-server --mode development --open",
+    "start": "webpack-dev-server --mode development --open --history-api-fallback",
     "build": "webpack --mode production"
   }
 ```
