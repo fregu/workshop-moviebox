@@ -1,4 +1,6 @@
 import qs from 'qs'
+const fetch =
+  typeof window === 'undefined' ? require('node-fetch') : window.fetch
 
 export default function tmdb(api_key) {
   const BASE_URL = 'https://api.themoviedb.org/3'
@@ -8,9 +10,19 @@ export default function tmdb(api_key) {
       'Content-Type': 'application/json'
     }
   }
+  const defaultQuery = {
+    api_key: api_key
+  }
 
-  function request({ url, ...req }) {
-    return fetch(url, { ...defaults, ...req })
+  function request({ url, path, query = {}, ...req }) {
+    return fetch(
+      url ||
+        `${BASE_URL}${path}${path.indexOf('?') > -1 ? '&' : '?'}${qs.stringify({
+          ...defaultQuery,
+          ...query
+        })}`,
+      { ...defaults, ...req }
+    )
       .then(response => response.json())
       .catch(error => console.error('Error:', error))
   }
@@ -18,30 +30,28 @@ export default function tmdb(api_key) {
   return {
     get(path, params) {
       return request({
-        url: `${BASE_URL}${path}?${qs.stringify({
-          api_key: api_key,
-          ...params
-        })}`,
+        path,
+        query: params,
         method: 'GET'
       })
     },
     post(path, params) {
       return request({
-        url: `${BASE_URL}${path}?${qs.stringify({ api_key: API_KEY })}`,
+        path,
         body: JSON.stringify(params),
         method: 'POST'
       })
     },
     put(path, params) {
       return request({
-        url: `${BASE_URL}${path}?${qs.stringify({ api_key: API_KEY })}`,
+        path,
         body: JSON.stringify(params),
         method: 'PUT'
       })
     },
     delete(path, params) {
       return request({
-        url: `${BASE_URL}${path}?${qs.stringify({ api_key: API_KEY })}`,
+        path,
         method: 'DELETE'
       })
     }

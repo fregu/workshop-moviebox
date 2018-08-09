@@ -1,0 +1,7 @@
+{
+  newMovies {
+    id
+    title
+    poster_path
+  }
+}
