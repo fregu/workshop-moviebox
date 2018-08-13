@@ -48,6 +48,7 @@ const MovieReviewsType = new GraphQLObjectType({
 })
 const MovieInfoType = new GraphQLObjectType({
   name: 'MovieInfo',
+  description: 'Get a single movie',
   fields: {
     id: { type: GraphQLString },
     overview: { type: GraphQLString },
@@ -95,6 +96,7 @@ const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: {
     videos: {
+      description: 'Get the movie trailers for a certain flick',
       type: new GraphQLList(VideoType),
       args: { id: { type: GraphQLString } },
       resolve(parentValue, args) {

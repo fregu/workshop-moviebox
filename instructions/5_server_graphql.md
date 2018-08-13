@@ -434,8 +434,12 @@ import cors from 'cors'
 app.use(cors())
 ```
 
-## Excercises
+## Exercises
 
 - Extend the graphQL API including the searchMovie endpoint we earlier used via REST
+
 - Experiment using http://localhost:5500/graphql and create .gql files for searchMovie and movieInfo
+
 - Update react containers from using Redux middlewares and REST to use graphQL decorators
+
+- Add description to each endpoint

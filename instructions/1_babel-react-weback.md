@@ -133,3 +133,9 @@ webpack.config.js
 },
 ...
 ```
+
+## Exercises
+
+- Create a react component with css, and if you prefer CSS modules
+
+- Update the component and see it hot reloading in the browser.

@@ -19,6 +19,10 @@ https://prettier.io/docs/en/editors.html
 }
 ```
 
+## Eslint
+
+TODO: setting up eslint to play nice with prettier
+
 ## Aliases and root
 
 ```bash
@@ -124,3 +128,11 @@ export default ({ children, color = 'red' }: Props) => (
   ...
 )
 ```
+
+## Exercises
+
+- Create a simple react component with a formfield and a list items where items and default value in input is based on props
+
+- Define approptiate flow types
+
+- Add a test to the component making sure it fires an onSubmit once on submitting the form, and onInput prop on each key press. (https://github.com/kentcdodds/react-testing-library)

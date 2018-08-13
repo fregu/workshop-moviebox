@@ -193,3 +193,13 @@ export const tmdb = ({ dispatch, getState }) => next => action => {
 
 Try in devtools debugger
 `{ type: 'SEARCH_MOVIE', query: 'underbart liv' }`
+
+## Exercises
+
+- Modify SEARCH_MOVIE results with full url poster_path (https://image.tmdb.org/t/p/w500/<path>)
+
+- Add case for GET_POPULAR_MOVIES
+
+- Create reducers for search results, selected movie and popular movies.
+
+- Add new action to select a specific movie from search results or popular

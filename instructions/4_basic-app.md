@@ -62,7 +62,7 @@ export default class MovieView extends Component {
 }
 ```
 
-## Excercises
+## Exercises
 
 - Create a connected React component src/containers/SearchMovie/index.js with a
   input field dispatching { type: 'SEARCH_MOVIE', query: <queryString>}
