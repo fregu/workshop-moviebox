@@ -4,16 +4,18 @@ import { Provider } from 'react-redux'
 import { BrowserRouter, Link, Route, Switch } from 'react-router-dom'
 
 import ApolloClient from 'apollo-boost'
-import { ApolloProvider } from 'react-apollo'
+import { ApolloProvider, link } from 'react-apollo'
+import { InMemoryCache } from 'apollo-cache-inmemory'
 
 import createStore from 'store'
 
 import App from './App'
 
-const store = createStore()
+const store = createStore(window.__REDUX_STATE__ || {})
 
 const client = new ApolloClient({
-  uri: '//localhost:5500/graphql'
+  uri: 'http://localhost:5500/graphql',
+  cache: new InMemoryCache().restore(window.__APOLLO_STATE__ || {})
 })
 
 const Root = () => (

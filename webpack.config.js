@@ -1,5 +1,4 @@
 const HtmlWebPackPlugin = require('html-webpack-plugin')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 const htmlPlugin = new HtmlWebPackPlugin({
   template: './src/index.html',
@@ -18,9 +17,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: ExtractTextPlugin.extract({
-          use: 'css-loader'
-        })
+        use: ['style-loader', 'css-loader']
       },
       {
         test: /\.(graphql|gql)$/,
@@ -29,13 +26,7 @@ module.exports = {
       }
     ]
   },
-  plugins: [
-    htmlPlugin,
-    new ExtractTextPlugin({
-      filename: 'style.css',
-      allChunks: true
-    })
-  ],
+  plugins: [htmlPlugin],
   output: {
     publicPath: '/'
   }
