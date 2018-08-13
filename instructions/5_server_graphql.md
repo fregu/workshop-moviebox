@@ -404,7 +404,12 @@ import React, { Component } from 'react'
 import { graphql } from 'react-apollo'
 import newMovies from 'queries/newMovies.gql'
 
-@graphql(newMovies)
+@graphql(newMovies, {
+  //passing parameters based on props
+  options: ({ genre }) => ({
+    variables: { genre }
+  })
+})
 class NewMovies extends Component {
   render() {
     const {
