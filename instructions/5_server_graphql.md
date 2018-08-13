@@ -345,7 +345,7 @@ import { ApolloProvider } from 'react-apollo'
 // ...
 
 const client = new ApolloClient({
-  uri: '//localhost:5500/graphql'
+  uri: 'http://localhost:5500/graphql'
 })
 
 const App = () => (
@@ -390,7 +390,7 @@ module.exports = {
 src/queries/newMovies.gql
 
 ```gql
-{
+query {
   newMovies {
     id
     title

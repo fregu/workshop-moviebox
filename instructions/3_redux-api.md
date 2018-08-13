@@ -151,10 +151,9 @@ export default [logger]
 src/store/index.js
 
 ```js
-import thunk from 'redux-thunk' // Handle async actions and promises
 import middlewares from './middlewares'
 ...
-composeEnhancers(applyMiddleware(...middlewares, thunk))
+composeEnhancers(applyMiddleware(...middlewares))
 ```
 
 ## API

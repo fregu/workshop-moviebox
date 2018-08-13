@@ -5,29 +5,27 @@ import { BrowserRouter, Link, Route, Switch } from 'react-router-dom'
 
 import ApolloClient from 'apollo-boost'
 import { ApolloProvider } from 'react-apollo'
-
-import Home from 'views/Home'
-import Movie from 'views/Movie'
+import { InMemoryCache } from 'apollo-cache-inmemory'
 
 import createStore from 'store'
 
-const store = createStore()
+import App from './App'
+
+const store = createStore(window.__REDUX_STATE__ || {})
 
 const client = new ApolloClient({
-  uri: '//localhost:5500/graphql'
+  uri: 'http://localhost:5500/graphql',
+  cache: new InMemoryCache().restore(window.__APOLLO_STATE__ || {})
 })
 
-const App = () => (
+const Root = () => (
   <Provider store={store}>
     <ApolloProvider client={client}>
       <BrowserRouter>
-        <Switch>
-          <Route exact path="/movies/:id" component={Movie} />
-          <Route component={Home} />
-        </Switch>
+        <App />
       </BrowserRouter>
     </ApolloProvider>
   </Provider>
 )
 
-ReactDOM.render(<App />, document.getElementById('app'))
+ReactDOM.hydrate(<Root />, document.getElementById('app'))

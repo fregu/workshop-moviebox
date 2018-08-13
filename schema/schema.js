@@ -1,4 +1,5 @@
 import TMDB from 'helpers/tmdb-fetch'
+import dotenv from 'dotenv'
 import {
   GraphQLObjectType,
   GraphQLString,
@@ -6,7 +7,6 @@ import {
   GraphQLSchema,
   GraphQLList
 } from 'graphql'
-import dotenv from 'dotenv'
 
 dotenv.config()
 const api = new TMDB(process.env.TMDB_API_KEY)

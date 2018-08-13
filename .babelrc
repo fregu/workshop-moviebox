@@ -1,6 +1,7 @@
 {
   "presets": ["env", "react", "flow"],
   "plugins": [
+    "import-graphql",
     "transform-decorators-legacy",
     "transform-object-rest-spread",
     [
