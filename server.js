@@ -8,7 +8,6 @@ import ssr from './ssr'
 
 dotenv.config()
 
-function serverRender(req, res, next) {}
 const app = express()
 
 app.use('/static', express.static('dist'))

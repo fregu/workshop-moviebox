@@ -13,7 +13,7 @@
   "scripts": {
     "test": "jest",
     "start": "npm-run-all --parallel watch:server watch:build dev",
-    "dev": "webpack-dev-server --mode development --open --history-api-fallback",
+    "dev": "webpack-dev-server --mode development --history-api-fallback",
     "build": "webpack --mode production",
     "server": "babel-node server.js",
     "watch:build": "webpack --mode production --watch",

@@ -172,7 +172,7 @@ package.json
 ```json
 "scripts": {
   "start": "npm-run-all --parallel serve watch:build dev",
-  "dev": "webpack-dev-server --mode development --open --history-api-fallback",
+  "dev": "webpack-dev-server --mode development --history-api-fallback",
   "build": "webpack --mode production",
   "watch:build": "webpack --mode production --watch",
   "serve": "nodemon --exec babel-node server.js --ignore src"
