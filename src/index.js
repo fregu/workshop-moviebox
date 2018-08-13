@@ -4,7 +4,7 @@ import { Provider } from 'react-redux'
 import { BrowserRouter, Link, Route, Switch } from 'react-router-dom'
 
 import ApolloClient from 'apollo-boost'
-import { ApolloProvider, link } from 'react-apollo'
+import { ApolloProvider } from 'react-apollo'
 import { InMemoryCache } from 'apollo-cache-inmemory'
 
 import createStore from 'store'

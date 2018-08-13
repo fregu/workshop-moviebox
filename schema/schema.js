@@ -1,4 +1,5 @@
 import TMDB from 'helpers/tmdb-fetch'
+import dotenv from 'dotenv'
 import {
   GraphQLObjectType,
   GraphQLString,
@@ -7,7 +8,8 @@ import {
   GraphQLList
 } from 'graphql'
 
-const api = new TMDB('72e8013728917209a38a06e945fb6a2f')
+dotenv.config()
+const api = new TMDB(process.env.TMDB_API_KEY)
 
 const NewMoviesType = new GraphQLObjectType({
   name: 'NewMovies',
