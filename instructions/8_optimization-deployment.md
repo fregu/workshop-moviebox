@@ -14,6 +14,9 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 
 module.exports = {
+  entry: {
+    main: './src/index.js'
+  },
   plugins: [
     // ...,
     new MiniCssExtractPlugin({
