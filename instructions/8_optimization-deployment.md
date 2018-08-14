@@ -3,7 +3,7 @@
 ### Creating a production build
 
 ```bash
-yarn add --dev webpack-merge uglifyjs-webpack-plugin mini-css-extract-plugin optimize-css-assets-webpack-plugin
+yarn add --dev webpack-merge uglifyjs-webpack-plugin mini-css-extract-plugin optimize-css-assets-webpack-plugin webpack-manifest-plugin
 ```
 
 webpack.config.js
@@ -12,6 +12,7 @@ webpack.config.js
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const ManifestPlugin = require('webpack-manifest-plugin')
 
 module.exports = {
   entry: {
@@ -21,7 +22,8 @@ module.exports = {
     // ...,
     new MiniCssExtractPlugin({
       filename: 'style.css'
-    })
+    }),
+    new ManifestPlugin()
   ],
   optimization: {
     minimizer: [
@@ -76,6 +78,10 @@ package.json
   "build": "webpack --config webpack.prod.js",
   "watch:build": "yarn build --watch",
   "start:server": "yarn build && yarn server",
+
+
+  "heroku-prebuild": "export NPM_CONFIG_PRODUCTION=false; export NODE_ENV=; NPM_CONFIG_PRODUCTION=false NODE_ENV=development npm install --only=dev --dev",
+  "heroku-postbuild": "export NPM_CONFIG_PRODUCTION=true; export NODE_ENV=production;",
 }
 ```
 

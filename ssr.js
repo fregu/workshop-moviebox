@@ -4,7 +4,7 @@ import React from 'react'
 import { renderToString } from 'react-dom/server'
 import { Provider } from 'react-redux'
 
-import { StaticRouter, matchPath } from 'react-router'
+import { StaticRouter } from 'react-router'
 
 import fetch from 'node-fetch'
 import Helmet from 'react-helmet'
@@ -13,7 +13,6 @@ import { createHttpLink } from 'apollo-link-http'
 import { InMemoryCache } from 'apollo-cache-inmemory'
 import { ApolloProvider, renderToStringWithData } from 'react-apollo'
 
-import schema from './schema/schema' // our schema file
 import createStore from 'store'
 import App from 'App'
 

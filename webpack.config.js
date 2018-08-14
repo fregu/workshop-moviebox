@@ -2,11 +2,7 @@ const HtmlWebPackPlugin = require('html-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
-
-const htmlPlugin = new HtmlWebPackPlugin({
-  template: './src/index.html',
-  filename: './index.html'
-})
+const ManifestPlugin = require('webpack-manifest-plugin')
 
 module.exports = {
   entry: {
@@ -23,7 +19,20 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader']
+        use: [
+          'style-loader',
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              ident: 'postcss',
+              plugins: [
+                require('postcss-import')(),
+                require('postcss-preset-env')()
+              ]
+            }
+          }
+        ]
       },
       {
         test: /\.(graphql|gql)$/,
@@ -38,7 +47,7 @@ module.exports = {
         }
       },
       {
-        test: /\.(jpe?g|png|gif|svg)$/i,
+        test: /\.(jpe?g|png|gif)$/i,
         exclude: /icons/,
         use: [
           {
@@ -57,7 +66,7 @@ module.exports = {
             options: {
               removeTags: true,
               removeSVGTagAttrs: true,
-              idPrefix: 'special'
+              idPrefix: 'icon'
             }
           }
         ]
@@ -75,10 +84,14 @@ module.exports = {
     ]
   },
   plugins: [
-    htmlPlugin,
+    new HtmlWebPackPlugin({
+      template: './src/index.html',
+      filename: './index.html'
+    }),
     new MiniCssExtractPlugin({
       filename: 'style.css'
-    })
+    }),
+    new ManifestPlugin()
   ],
   output: {
     publicPath: '/'

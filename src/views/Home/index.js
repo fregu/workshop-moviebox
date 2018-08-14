@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import { graphql } from 'react-apollo'
 import newMovies from 'queries/newMovies.gql'
 import Test from 'components/Test'
-
+import Icon from 'components/Icon'
 import { Helmet } from 'react-helmet'
 import './index.css'
 
@@ -22,7 +22,24 @@ export default class Home extends Component<Props> {
         <Helmet>
           <title>Home sweet home</title>
         </Helmet>
+
+        {/* {selected ? <Hero {...selected} /> : null}
+        {categories.map(category => (
+          <Carousel key={category.id}>
+            {category.items(item => (
+              <Link url={`/${item.type}/${item.id}`} discreet>
+                <Poster
+                  dimensions="2by3"
+                  src={item.poster_path}
+                  title={item.title}
+                />
+              </Link>
+            ))}
+          </Carousel>
+        ))} */}
+
         <Test>Yayway</Test>
+        <Icon />
         <div className={'NewMovies'}>
           {newMovies.map(movie => (
             <div key={movie.id}>

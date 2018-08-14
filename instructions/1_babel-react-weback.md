@@ -133,7 +133,7 @@ module.exports = {
 ### CSS
 
 ```bash
-yarn add --dev css-loader style-loader
+yarn add --dev css-loader style-loader postcss-loader postcss-import postcss-preset-env'
 ```
 
 webpack.config.js
@@ -142,7 +142,16 @@ webpack.config.js
     ...,
     {
       test: /\.css$/,
-      use: ["style-loader", "css-loader"]
+      use: ["style-loader", "css-loader", {
+        loader: 'postcss-loader',
+        options: {
+          ident: 'postcss',
+          plugins: [
+            require('postcss-import')(),
+            require('postcss-preset-env')()
+          ]
+        }
+      }]
     }
   ]
 },

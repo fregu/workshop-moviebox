@@ -159,6 +159,10 @@ const client = new ApolloClient({
   cache: new InMemoryCache().restore(window.__APOLLO_STATE__ || {})
 })
 
+delete window.__REDUX_STATE__ // eslint-disable-line
+delete window.__APOLLO_STATE__ // eslint-disable-line
+delete window.graphqlUrl // eslint-disable-line
+
 const Root = () => (
   <Provider store={store}>
     <ApolloProvider client={client}>
