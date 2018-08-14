@@ -2,7 +2,7 @@ import qs from 'qs'
 const fetch =
   typeof window === 'undefined' ? require('node-fetch') : window.fetch
 
-export default function tmdb(api_key) {
+export default function tmdb(apiKey) {
   const BASE_URL = 'https://api.themoviedb.org/3'
   const defaults = {
     mode: 'cors',
@@ -11,7 +11,7 @@ export default function tmdb(api_key) {
     }
   }
   const defaultQuery = {
-    api_key: api_key
+    api_key: apiKey
   }
 
   function request({ url, path, query = {}, ...req }) {

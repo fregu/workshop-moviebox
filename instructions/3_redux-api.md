@@ -1,5 +1,7 @@
 ## Redux
 
+Redux is a predictable state container for JavaScript apps. Giving a single source of thruth which can be used throughout the application, with tools to modify the state though Actions, Modifiers and Middlewares.
+
 ```
 yarn add redux react-redux
 ```

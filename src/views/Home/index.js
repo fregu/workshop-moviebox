@@ -1,13 +1,17 @@
+// @flow
 import React, { Component } from 'react'
 import { graphql } from 'react-apollo'
-import gql from 'graphql-tag'
 import newMovies from 'queries/newMovies.gql'
 import Test from 'components/Test'
 import { Helmet } from 'react-helmet'
 import './index.css'
 
+type Props = {
+  data: { newMovies: Array<any> }
+}
+
 @graphql(newMovies)
-export default class Home extends Component {
+export default class Home extends Component<Props> {
   render() {
     const {
       data: { newMovies = [] }

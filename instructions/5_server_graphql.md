@@ -387,6 +387,25 @@ module.exports = {
 }
 ```
 
+.flowconfig
+
+```
+[options]
+esproposal.decorators=ignore
+esproposal.optional_chaining=ignore
+
+module.name_mapper='^\(.*\)$' -> '<PROJECT_ROOT>/src/\1'
+
+module.name_mapper.extension='gql' -> '<PROJECT_ROOT>/src/types/empty-stub.js.flow'
+module.name_mapper.extension='svg' -> '<PROJECT_ROOT>/src/types/empty-stub.js.flow'
+```
+
+src/types/empty-stub.js.flow
+
+```js
+export default ''
+```
+
 src/queries/newMovies.gql
 
 ```gql
