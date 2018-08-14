@@ -63,6 +63,7 @@ import App from 'App'
 
 ```js
 export default (req, res) => {
+  const graphqlUrl = `${req.protocol}://${req.get('Host')}/graphql`
   const context = {}
   const store = createStore({ counter: 14 })
   const apolloClient = new ApolloClient({
@@ -101,7 +102,9 @@ renderToStringWithData(Root).then(content => {
   const helmetData = Helmet.renderStatic()
 
   res.writeHead(200, { 'Content-Type': 'text/html' })
-  res.end(htmlTemplate({ reactDom, reduxState, apolloState, helmetData }))
+  res.end(
+    htmlTemplate({ reactDom, reduxState, apolloState, helmetData, graphqlUrl })
+  )
 })
 ```
 
@@ -110,7 +113,8 @@ function htmlTemplate({
   reactDom = '<div />',
   reduxState,
   apolloState,
-  helmetData
+  helmetData,
+  graphqlUrl
 }) {
   return `
         <!DOCTYPE html>
@@ -127,6 +131,7 @@ function htmlTemplate({
             <script>
                 window.__REDUX_STATE__ = ${JSON.stringify(reduxState)}
                 window.__APOLLO_STATE__ = ${JSON.stringify(apolloState)}
+                window.graphqlUrl = '${graphqlUrl}'
             </script>
             <script src="/static/main.js"></script>
         </body>
@@ -150,7 +155,7 @@ import { InMemoryCache } from 'apollo-cache-inmemory'
 const store = createStore(window.__REDUX_STATE__ || {})
 
 const client = new ApolloClient({
-  uri: 'http://localhost:5500/graphql',
+  uri: window.graphqlUrl || 'http://localhost:5500/graphql',
   cache: new InMemoryCache().restore(window.__APOLLO_STATE__ || {})
 })
 

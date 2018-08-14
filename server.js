@@ -10,7 +10,7 @@ dotenv.config()
 
 const app = express()
 
-app.use('/static', express.static('dist'))
+app.use('/static', express.static(path.join(__dirname, 'dist')))
 app.use('/favicon.ico', (req, res, next) => {})
 
 app.use(cors())
