@@ -72,6 +72,7 @@ package.json
   "dev": "webpack-dev-server --history-api-fallback --config webpack.dev.js",
   "build": "webpack --config webpack.prod.js",
   "watch:build": "yarn build --watch",
+  "start:server": "yarn build && yarn server",
 }
 ```
 
@@ -87,4 +88,14 @@ heroku login
 heroku create
 
 git push heroku master
+
+heroku ps:scale web=1
+
+heroku open
+```
+
+Procfile
+
+```
+web: yarn index.js
 ```
