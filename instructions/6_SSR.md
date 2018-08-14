@@ -174,7 +174,7 @@ package.json
   "start": "npm-run-all --parallel serve watch:build dev",
   "dev": "webpack-dev-server --mode development --history-api-fallback",
   "build": "webpack --mode production",
-  "watch:build": "webpack --mode production --watch",
+  "watch:build": "yarn build --watch",
   "serve": "nodemon --exec babel-node server.js --ignore src"
 }
 ```

@@ -1,9 +1,5 @@
 import 'ignore-styles'
 
-require('babel-register')({
-  ignore: [/(node_modules)/, /.css$/]
-})
-
 import React from 'react'
 import { renderToString } from 'react-dom/server'
 import { Provider } from 'react-redux'
@@ -20,6 +16,10 @@ import { ApolloProvider, renderToStringWithData } from 'react-apollo'
 import schema from './schema/schema' // our schema file
 import createStore from 'store'
 import App from 'App'
+
+require('babel-register')({
+  ignore: [/(node_modules)/, /.css$/]
+})
 
 export default (req, res) => {
   const context = {}

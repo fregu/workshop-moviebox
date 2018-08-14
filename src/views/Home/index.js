@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 import { graphql } from 'react-apollo'
 import newMovies from 'queries/newMovies.gql'
 import Test from 'components/Test'
+
 import { Helmet } from 'react-helmet'
 import './index.css'
 

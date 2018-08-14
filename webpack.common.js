@@ -1,14 +1,12 @@
-const HtmlWebPackPlugin = require('html-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 
-const htmlPlugin = new HtmlWebPackPlugin({
-  template: './src/index.html',
-  filename: './index.html'
-})
-
 module.exports = {
+  entry: {
+    main: './src/index.js'
+  },
   module: {
     rules: [
       {
@@ -20,7 +18,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader']
+        use: [MiniCssExtractPlugin.loader, 'css-loader']
       },
       {
         test: /\.(graphql|gql)$/,
@@ -62,6 +60,15 @@ module.exports = {
     ]
   },
   optimization: {
+    splitChunks: {
+      cacheGroups: {
+        styles: {
+          name: 'style',
+          test: /\.css$/,
+          enforce: true
+        }
+      }
+    },
     minimizer: [
       new UglifyJsPlugin({
         cache: true,
@@ -71,8 +78,12 @@ module.exports = {
       new OptimizeCSSAssetsPlugin({})
     ]
   },
+
   plugins: [
-    htmlPlugin,
+    new HtmlWebpackPlugin({
+      template: './src/index.html',
+      filename: './index.html'
+    }),
     new MiniCssExtractPlugin({
       filename: 'style.css'
     })

@@ -18,7 +18,7 @@ const client = new ApolloClient({
   cache: new InMemoryCache().restore(window.__APOLLO_STATE__ || {})
 })
 
-const Root = () => (
+const Root = (
   <Provider store={store}>
     <ApolloProvider client={client}>
       <BrowserRouter>
@@ -28,4 +28,4 @@ const Root = () => (
   </Provider>
 )
 
-ReactDOM.hydrate(<Root />, document.getElementById('app'))
+ReactDOM.hydrate(Root, document.getElementById('app'))
