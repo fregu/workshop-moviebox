@@ -76,6 +76,12 @@ package.json
 }
 ```
 
+Procfile
+
+```
+web: yarn index.js
+```
+
 ## Heroku
 
 Create heroku account https://heroku.com
@@ -85,17 +91,18 @@ yarn global add heroku
 
 heroku login
 
-heroku create
+# Generate a new app
+heroku create myAppName
 
+# Build your app to heroku
 git push heroku master
 
+# Checking the app status
 heroku ps:scale web=1
 
+# Checking the logs
+heroku logs --tail
+
+# Open app in browser
 heroku open
-```
-
-Procfile
-
-```
-web: yarn index.js
 ```

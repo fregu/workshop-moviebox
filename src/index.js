@@ -1,7 +1,7 @@
-import React, { Fragment } from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
-import { BrowserRouter, Link, Route, Switch } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
 
 import ApolloClient from 'apollo-boost'
 import { ApolloProvider } from 'react-apollo'
@@ -14,7 +14,7 @@ import App from './App'
 const store = createStore(window.__REDUX_STATE__ || {})
 
 const client = new ApolloClient({
-  uri: 'http://localhost:5500/graphql',
+  uri: window.graphqlUrl || 'http://localhost:5500/graphql',
   cache: new InMemoryCache().restore(window.__APOLLO_STATE__ || {})
 })
 

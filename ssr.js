@@ -22,11 +22,12 @@ require('babel-register')({
 })
 
 export default (req, res) => {
-  const context = {}
+  const graphqlUrl = `${req.protocol}://${req.get('Host')}/graphql`
+  const context = { graphqlUrl }
   const store = createStore({ counter: 14 })
   const apolloClient = new ApolloClient({
     link: createHttpLink({
-      uri: 'http://localhost:5500/graphql',
+      uri: graphqlUrl,
       fetch,
       credentials: 'same-origin',
       headers: {
@@ -40,7 +41,7 @@ export default (req, res) => {
   const Root = (
     <Provider store={store}>
       <ApolloProvider client={apolloClient}>
-        <StaticRouter location={req.originalUrl} context={{}}>
+        <StaticRouter location={req.originalUrl} context={context}>
           <App />
         </StaticRouter>
       </ApolloProvider>
@@ -55,7 +56,15 @@ export default (req, res) => {
     const helmetData = Helmet.renderStatic()
 
     res.writeHead(200, { 'Content-Type': 'text/html' })
-    res.end(htmlTemplate({ reactDom, reduxState, apolloState, helmetData }))
+    res.end(
+      htmlTemplate({
+        reactDom,
+        reduxState,
+        apolloState,
+        helmetData,
+        graphqlUrl
+      })
+    )
   })
 }
 
@@ -63,7 +72,8 @@ function htmlTemplate({
   reactDom = '<div />',
   reduxState,
   apolloState,
-  helmetData
+  helmetData,
+  graphqlUrl
 }) {
   return `
         <!DOCTYPE html>
@@ -80,6 +90,7 @@ function htmlTemplate({
             <script>
                 window.__REDUX_STATE__ = ${JSON.stringify(reduxState)}
                 window.__APOLLO_STATE__ = ${JSON.stringify(apolloState)}
+                window.graphqlUrl = '${graphqlUrl}'
             </script>
             <script src="/static/main.js"></script>
         </body>

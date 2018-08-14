@@ -34,4 +34,4 @@ By using the knowledge and tools from earlier courses, we will now focus on impl
 
 ### Course 8 - Optimization and deployment
 
-Our app is ready for production, but will need some finishing touches. We look into how to configure webpack for production, adding a service worker and deploy the app onto an external hosting, using continous deployment.
+Our app is ready for production, but will need some finishing touches. We look into how to configure webpack for production, adding a service worker and deploy the app onto an external hosting, using heroku cli and git remote.

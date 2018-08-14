@@ -86,7 +86,7 @@ export default (req, res) => {
 const Root = (
   <Provider store={store}>
     <ApolloProvider client={apolloClient}>
-      <StaticRouter location={req.originalUrl} context={{}}>
+      <StaticRouter location={req.originalUrl} context={context}>
         <App />
       </StaticRouter>
     </ApolloProvider>
