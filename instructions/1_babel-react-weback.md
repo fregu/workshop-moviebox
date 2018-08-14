@@ -1,9 +1,24 @@
 ## Setting up the project
 
+In this session you will setup a basic React App using Webpack 4, Babel and Webpack dev server. It will focus on understanding what the basic boilerplate code does and how you easily can set it up your self from scratch.
+
 ```bash
 mkdir moviebox && cd $_
 
 yarn init -y
+```
+
+### Update node
+
+```bash
+node -v
+```
+
+install node latest stable version via n (or nvm)
+
+```bash
+yarn global add n
+n stable
 ```
 
 ### Setup webpack 4

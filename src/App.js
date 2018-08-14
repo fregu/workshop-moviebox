@@ -3,9 +3,10 @@ import { Route, Switch } from 'react-router-dom'
 import Home from 'views/Home'
 import Movie from 'views/Movie'
 
-export default () => (
+const App = () => (
   <Switch>
     <Route exact path="/movies/:id" component={Movie} />
     <Route component={Home} />
   </Switch>
 )
+export default App
