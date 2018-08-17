@@ -2,6 +2,14 @@
 
 Based on a design, break it down in resulable components and specific functions to create an experience where:
 
+## Structure
+
+base
+components
+containers
+helpers
+views
+
 ## Page
 
 ```js
@@ -72,52 +80,75 @@ Show info of movie / TV-show with Hero image/video, list of cast members with ch
 // Related <Carousel><Link><Poster></Link></Carousel>
 ```
 
-### importing assets
+### Components we need
 
-`yarn add file-loader svg-inline-loader`
-webpack.config.js
+Page
+Carousel
+Poster
+Figure
+Link
+Button
+Icon
+Hero
+Grid
 
-```js
-module.exports = {
-  module: {
-    rules: [
-      // ...
-      {
-        test: /\.(woff|woff2|(o|t)tf|eot)$/i,
-        loader: 'file-loader',
-        query: {
-          name: 'fonts/[name].[hash].[ext]'
-        }
-      },
-      {
-        test: /\.(jpe?g|png|gif|svg)$/i,
-        exclude: /icons/,
-        use: [
-          {
-            loader: 'file-loader',
-            query: {
-              name: 'img/[name].[hash].[ext]'
-            }
-          }
-        ]
-      },
-      {
-        test: /\.svg$/i,
-        use: [
-          {
-            loader: require.resolve('svg-inline-loader'),
-            options: {
-              removeTags: true,
-              removeSVGTagAttrs: true,
-              idPrefix: 'icon'
-            }
-          }
-        ]
-      }
-    ]
-    // ...
+### Storybook
+
+By creating example stories of our components, views and containers we can present them in a storybook styleguide
+
+src/components/Button/stories.js
+`yarn add --dev @storybook/react`
+
+package.json
+
+```json
+{
+  "scripts": {
+    "storybook": "start-storybook -p 9001 -c .storybook"
   }
 }
+```
+
+```js
+import React from 'react'
+import { storiesOf } from '@storybook/react'
+import { action } from '@storybook/addon-actions'
+import Button from './Button'
+
+storiesOf('Button', module)
+  .add('with text', () => (
+    <Button onClick={action('clicked')}>Hello Button</Button>
+  ))
+  .add('with some emoji', () => (
+    <Button onClick={action('clicked')}>
+      <span role="img" aria-label="so cool">
+        😀 😎 👍 💯
+      </span>
+    </Button>
+  ))
+```
+
+.stories.config.js
+import { configure } from '@storybook/react';
+
+const req = require.context('../src/components', true, /\.stories\.js$/)
+
+function loadStories() {
+req.keys().forEach((filename) => req(filename))
+}
+
+configure(loadStories, module);
+
+```js
+import { configure } from '@storybook/react'
+
+const req = require.context('../src/components', true, /\.stories\.js$/)
+
+function loadStories() {
+  req.keys().forEach(filename => req(filename))
+}
+
+configure(loadStories, module)
 ```
 
 ### Exercises

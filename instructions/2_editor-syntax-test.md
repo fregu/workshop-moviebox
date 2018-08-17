@@ -7,7 +7,7 @@ Set up editor with development environment using syntax checker, flow types and 
 Prettier is opinionated code formatter for js, json, css, ... which automatically formats your code for you
 
 ```
-yarn add prettier --dev
+yarn add --dev prettier
 ```
 
 https://prettier.io/docs/en/editors.html
@@ -21,6 +21,8 @@ prettier-atom / prettier-vscode / JsPrettier (sublime)
   "singleQuote": true
 }
 ```
+
+!! if ESLint integration is enabled prettier wont work without eslint
 
 ## Eslint
 
@@ -73,13 +75,43 @@ yarn add --dev babel-plugin-module-resolver
       {
         "root": ["./src"],
         "alias": {
-          "test": "./test",
-          "underscore": "lodash"
+          "root": "./"
         }
       }
     ]
   ]
 }
+```
+
+## Allow EcmaScript features
+
+Allowing for other modern standards needs to be specified for babel as well
+We will be using class properties and class properties, solets add support for them
+
+```bash
+yarn add --dev babel-plugin-transform-class-properties babel-plugin-transform-decorators-legacy babel-plugin-transform-object-rest-spread
+```
+
+.babelrc
+
+```
+{
+  ...,
+  "plugins": [
+    ... ,
+    "transform-class-properties",
+    "transform-decorators-legacy",
+    "transform-object-rest-spread"
+  ]
+}
+```
+
+.flowconfig
+
+```
+[options]
+esproposal.decorators=ignore
+...
 ```
 
 ## Jest
@@ -109,18 +141,23 @@ package.json
 }
 ```
 
-components/Test/test.js
+`__mocks__/styleMock.js`
+`export default {}`
+
+`__mocks__/fileMock.js`
+`export default ''`
+
+src/test.js
 
 ```js
 import React from 'react'
 import { render, cleanup } from 'react-testing-library'
 import 'jest-dom/extend-expect'
-import { Test } from './index.js' // Get unconnected component
 
 afterEach(cleanup)
 test('Test component shows content', () => {
-  const { getByText } = render(<Test>Hejhej</Test>)
-  expect(getByText(/^Hejhej/))
+  const { getByText } = render(<div>Hejhej</div>)
+  expect(getByText(/^Hejhej/)).toBeInTheDocument()
 })
 ```
 
@@ -128,7 +165,17 @@ test('Test component shows content', () => {
 yarn test
 ```
 
-## Flow types
+### What should you unit test?
+
+Write tests to specify the purpose of a component and the expected bahaviour in interaction using the component
+
+Let tests alert me when something breaks the specification.
+
+Methods like getByText() and getByLabel() etc. allows us to write tests according with how users interact with the component
+
+Test the interaction of multiple components working together in containers and views rather than just component snapshots
+
+## Flow static types
 
 Flow is a static type checker for JavaScript, allowing you to be stricter which types are allowed making the code easier to use and test.
 
@@ -140,7 +187,7 @@ yarn add --dev babel-cli flow-bin babel-preset-flow
 
 ```
 {
-  "presets": ["flow"]
+  "presets": [..., "flow"]
 }
 ```
 
@@ -156,39 +203,59 @@ yarn run flow
 module.name_mapper='^\(.*\)$' -> '<PROJECT_ROOT>/src/\1'
 ```
 
+components/Test/index.js
+
 ```js
 // @flow
-...
+import React, { Component } from 'react'
+
 type Props = {
   color: string,
   children: any
 }
-export default ({ children, color = 'red' }: Props) => (
-  ...
-)
+type State = {}
+// export default function Test({ children, color = 'red' }: Props) {...}
+export default class Test extends Component<Props, State> {
+  render() {
+    const { color = 'red', children } = this.props
+    return (
+      <div style={{ color }} className="Test">
+        {children}
+      </div>
+    )
+  }
+}
 ```
 
 ## Precommit hook
 
 Now when we have an exellent testing suite, we must make sure it it enforced. By running linting and tests before each commit. Only allow "valid" code to be committed.
+`yarn add --dev precommit-hook`
 
 package.json
 
 ```json
-scripts: {
+"scripts": {
   "test": "jest",
   "lint": "eslint src",
-  "precommit": "yarn test && yarn flow && yarn lint",
+  "flow": "flow"
   "..."
-}
+},
+"pre-commit": ["lint", "test", "flow"],
 ```
+
+## Discussions
+
+- How do we want to work with testing
 
 ## Exercises
 
-- create a basic component components/Test and make sure the test passes
+- create a test file src/Test/test.js where you import the component Test and renders it using https://github.com/kentcdodds/react-testing-library and write tests to make sure:
 
-- Create a simple react component with a formfield and a list items where items and default value in input is based on props
+  - som specific content is being rendered inside the component
+  - a inner element with data-test="counter" has initial value of 0 when no counter prop is not passed, and that it is 14 when counter="14"
+  - every time Test is being clicked data-test="counter" has increased it value by 5
 
-- Define approptiate flow types
+- implement the component src/components/Test/index.js and make sure all tests passes
 
-- Add a test to the component making sure it fires an onSubmit once on submitting the form, and onInput prop on each key press. (https://github.com/kentcdodds/react-testing-library)
+- Declare the flow types in the component

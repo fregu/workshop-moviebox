@@ -1,6 +1,6 @@
-import TMDB from 'helpers/tmdb-fetch'
+// import TMDB from 'helpers/tmdb-fetch'
 const API_KEY = '72e8013728917209a38a06e945fb6a2f'
-const api = new TMDB(API_KEY)
+const api = { get() {} } // new TMDB(API_KEY)
 
 export const tmdb = ({ dispatch, getState }) => next => action => {
   switch (action.type) {
@@ -9,7 +9,7 @@ export const tmdb = ({ dispatch, getState }) => next => action => {
       api
         .get(`/movie/${action.id}`, { language: 'sv_SE' })
         .then(data => dispatch({ type: 'SET_MOVIE', data }))
-
+      break
     case 'SEARCH_MOVIE':
       api
         .get(`/search/movie`, {
@@ -18,6 +18,8 @@ export const tmdb = ({ dispatch, getState }) => next => action => {
           query: action.query
         })
         .then(data => dispatch({ type: 'SET_SEARCH_RESULT', data }))
+      break
+    default:
   }
   next(action)
 }

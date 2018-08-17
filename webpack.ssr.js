@@ -1,13 +1,16 @@
 const path = require('path')
-
 module.exports = {
-  entry: {
-    main: './src/index.js'
-  },
+  entry: './ssr.js',
   output: {
+    library: 'ssr',
+    libraryTarget: 'umd',
     publicPath: '/',
     path: path.resolve(__dirname, 'dist'),
-    filename: 'main.js'
+    filename: 'ssr.js'
+  },
+  target: 'node',
+  resolve: {
+    extensions: ['.wasm', '.mjs', '.js', '.json', '.gql', '.svg']
   },
   module: {
     rules: [
@@ -25,20 +28,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader',
-          {
-            loader: 'postcss-loader',
-            options: {
-              ident: 'postcss',
-              plugins: [
-                require('postcss-import')(),
-                require('postcss-preset-env')()
-              ]
-            }
-          }
-        ]
+        use: 'null-loader'
       },
       {
         test: /\.(graphql|gql)$/,

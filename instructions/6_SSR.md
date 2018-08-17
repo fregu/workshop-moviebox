@@ -39,24 +39,18 @@ Serving the App server side
 ssr.js
 
 ```js
-import 'ignore-styles'
-require('babel-register')({
-  ignore: [/(node_modules)/, /.css$/]
-})
-```
-
-```js
 import React from 'react'
 import { renderToString } from 'react-dom/server'
 import { Provider } from 'react-redux'
 import { StaticRouter, matchPath } from 'react-router'
 import fetch from 'node-fetch'
 import Helmet from 'react-helmet'
+
 import { ApolloClient } from 'apollo-client'
 import { createHttpLink } from 'apollo-link-http'
 import { InMemoryCache } from 'apollo-cache-inmemory'
 import { ApolloProvider, renderToStringWithData } from 'react-apollo'
-import schema from './schema/schema'
+
 import createStore from 'store'
 import App from 'App'
 ```
@@ -79,7 +73,7 @@ export default (req, res) => {
     ssrMode: true
   })
 
-  // render app
+  // ... render app
 }
 ```
 
@@ -121,11 +115,11 @@ function htmlTemplate({
         <html>
         <head>
             <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link rel="stylesheet" href="/static/style.css" />
             ${helmetData.title.toString()}
             ${helmetData.meta.toString()}
         </head>
-
         <body>
             <div id="app">${reactDom}</div>
             <script>
@@ -140,10 +134,15 @@ function htmlTemplate({
 }
 ```
 
+webpack.ssr.js
+
+```js
+```
+
 server.js
 
 ```js
-import ssr from './ssr'
+import ssr from './dist/ssr'
 
 app.use('/*', ssr)
 ```

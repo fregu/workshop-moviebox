@@ -1,5 +1,3 @@
-import 'ignore-styles'
-
 import React from 'react'
 import { renderToString } from 'react-dom/server'
 import { Provider } from 'react-redux'
@@ -15,10 +13,6 @@ import { ApolloProvider, renderToStringWithData } from 'react-apollo'
 
 import createStore from 'store'
 import App from 'App'
-
-require('babel-register')({
-  ignore: [/(node_modules)/, /.css$/]
-})
 
 export default (req, res) => {
   const graphqlUrl = `${req.protocol}://${req.get('Host')}/graphql`
@@ -76,21 +70,22 @@ function htmlTemplate({
 }) {
   return `
         <!DOCTYPE html>
-        <html>
+        <html ${helmetData.htmlAttributes.toString()}>
         <head>
             <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link rel="stylesheet" href="/static/style.css" />
             ${helmetData.title.toString()}
             ${helmetData.meta.toString()}
+            ${helmetData.link.toString()}
+            ${helmetData.style.toString()}
         </head>
 
-        <body>
-            <div id="app">${reactDom}</div>
-            <script>
-                window.__REDUX_STATE__ = ${JSON.stringify(reduxState)}
-                window.__APOLLO_STATE__ = ${JSON.stringify(apolloState)}
-                window.graphqlUrl = '${graphqlUrl}'
-            </script>
+        <body ${helmetData.bodyAttributes.toString()}>
+          ${helmetData.noscript.toString()}
+            <div id="root">${reactDom}</div>
+
+            ${helmetData.script.toString()}
             <script src="/static/main.js"></script>
         </body>
         </html>

@@ -21,6 +21,10 @@ export default class Home extends Component<Props> {
       <div className="View Home">
         <Helmet>
           <title>Home sweet home</title>
+          <meta
+            name="Description"
+            content="Browse all movies and TV-shows there is in one place"
+          />
         </Helmet>
 
         {/* {selected ? <Hero {...selected} /> : null}

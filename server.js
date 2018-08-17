@@ -2,9 +2,10 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import path from 'path'
+
 import expressGraphQL from 'express-graphql'
 import schema from './schema/schema'
-import ssr from './ssr'
+import ssr from './dist/ssr'
 
 dotenv.config()
 
@@ -21,6 +22,7 @@ app.use(
     graphiql: true
   })
 )
+
 app.use('/*', ssr)
 
 const port = process.env.PORT || 5500

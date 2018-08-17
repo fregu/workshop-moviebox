@@ -4,6 +4,13 @@ In this series of courses we will step by step learn how to create a modern web 
 
 This series is divided in several sessions focusing on the small parts, that all fit together in building an advanced web application.
 
+### Requirements
+
+Text editor (Atom, VS Code, Sublime, Vim, ...)
+Terminal (iTerm, terminal)
+Node JS (https://nodejs.org/en/)
+Git (https://git-scm.com/download/mac)
+
 ### Course 1 - Webpack, Babel and React
 
 Focuses on setting up the basic development environment and buildd process to get a development server up and running with you code. Basically a way for you to say Hello world in javascript.

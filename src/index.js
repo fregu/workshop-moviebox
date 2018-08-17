@@ -11,14 +11,18 @@ import createStore from 'store'
 
 import App from './App'
 
-const store = createStore(window.__REDUX_STATE__ || {})
+const store = createStore(
+  (typeof window !== 'undefined' && window.__REDUX_STATE__) || {}
+)
 
 const client = new ApolloClient({
   uri: window.graphqlUrl || 'http://localhost:5500/graphql',
-  cache: new InMemoryCache().restore(window.__APOLLO_STATE__ || {})
+  cache: new InMemoryCache().restore(
+    (typeof window !== 'undefined' && window.__APOLLO_STATE__) || {}
+  )
 })
 
-const Root = (
+const Root = () => (
   <Provider store={store}>
     <ApolloProvider client={client}>
       <BrowserRouter>
@@ -28,4 +32,4 @@ const Root = (
   </Provider>
 )
 
-ReactDOM.hydrate(Root, document.getElementById('app'))
+ReactDOM.render(<Root />, document.getElementById('root'))

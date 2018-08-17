@@ -396,14 +396,8 @@ esproposal.optional_chaining=ignore
 
 module.name_mapper='^\(.*\)$' -> '<PROJECT_ROOT>/src/\1'
 
-module.name_mapper.extension='gql' -> '<PROJECT_ROOT>/src/types/empty-stub.js.flow'
-module.name_mapper.extension='svg' -> '<PROJECT_ROOT>/src/types/empty-stub.js.flow'
-```
-
-src/types/empty-stub.js.flow
-
-```js
-export default ''
+module.name_mapper.extension='gql' -> '<PROJECT_ROOT>/__mocks__/fileMock.js'
+module.name_mapper.extension='svg' -> '<PROJECT_ROOT>/__mocks__/fileMock.js'
 ```
 
 src/queries/newMovies.gql
