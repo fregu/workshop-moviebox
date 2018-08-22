@@ -4,7 +4,7 @@ Redux is a predictable state container for JavaScript apps. Giving a single sour
 
 Install browser extension "Redux DevTools", to follow along exacly whats happening inside your store
 
-```
+```bash
 yarn add redux react-redux
 ```
 
@@ -110,8 +110,7 @@ type Props = {
   dispatch: any
 }
 
-@connect(store => ({ counter: store.counter }))
-export default class Test extends Component<Props> {
+class Test extends Component<Props> {
   onClick = () => {
     this.props.dispatch({ type: 'INCREMENT', step: 5 })
   }
@@ -128,6 +127,7 @@ export default class Test extends Component<Props> {
     )
   }
 }
+export default connect(store => ({ counter: store.counter }))(Test)
 ```
 
 ### Testing connected components
@@ -216,18 +216,19 @@ export const counter = (state = 0, action) => {
 
 It might feel overkill to import constants instead of just dispatchin strings, but when you application is getting larger, you will thank yourself in your declarity of exacly which action is used where.
 
-You can also bind the action creators directly to the props of a connected component inside the connect method/decorator
+You can also bind the action creators directly to the props of a connected component inside the connect method
 
 components/Test/index.js
 
 ```js
 import { incrementCounter } from 'store/actions'
 // ...
-@connect(({ counter }) => ({ counter }),
+export default connect(
+  ({ counter }) => ({ counter }),
   dispatch => ({
     incrementCounter: step => dispatch(incrementCounter(step))
   })
-)
+)(Test)
 ```
 
 ## Middlewares
@@ -359,9 +360,9 @@ export const tmdb = ({ dispatch, getState }) => next => action => {
         .get(`/movie/${action.id}`, { language: 'sv_SE' })
         .then(data => dispatch({ type: 'SET_MOVIE', data }))
       break
-    case 'SEARCH_MOVIE':
+    case 'SEARCH':
       api
-        .get(`/search/movie`, {
+        .get(`/search/multi`, {
           language: 'sv_SE',
           include_adult: false,
           query: action.query
@@ -378,7 +379,7 @@ src/store/middlewares/index.js
 ``
 
 Try in devtools debugger
-`{ type: 'SEARCH_MOVIE', query: 'underbart liv' }`
+`{ type: 'SEARCH', query: 'underbart liv' }`
 
 ## Exercises
 

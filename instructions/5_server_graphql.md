@@ -1,20 +1,24 @@
-## Express JS
+# HTTP/2 Server and GraphQl
+
+## Koa JS
 
 ```bash
-yarn add express webpack-dev-middleware nodemon babel-cli
+yarn add koa koa2-history-api-fallback koa-webpack-dev-middleware nodemon babel-cli
 ```
 
-server.js
+server/index.js
 
 ```js
-import express from 'express'
-import webpackMiddleware from 'webpack-dev-middleware'
+import Koa from 'koa'
+import historyFallback from 'koa2-history-api-fallback'
+import webpackMiddleware from 'koa-webpack-dev-middleware'
 import webpack from 'webpack'
-import webpackConfig from './webpack.config.js'
+import webpackConfig from '../webpack.config.js'
 
-const app = express()
-
+const app = new Koa()
 const compiler = webpack(webpackConfig)
+
+app.use(historyFallback())
 app.use(webpackMiddleware(compiler))
 
 app.listen(5500, () => {
@@ -27,36 +31,63 @@ package.json
 ```json
 "scripts":{
   ...
-  "serve": "nodemon --exec babel-node server.js  --ignore src"
+  "serve": "nodemon --exec babel-node server --ignore src"
   ...
 }
 ```
 
 `yarn serve`
 
-### Routing
+## HTTP/2 and SSL
 
-`yarn add path`
+HTTP/2 is the "new" standard for web content with major improvements over HTTP/1.1, being faster and more secure. One of the major benefits is the possibility to push content in paralell to the client, instead of waithing for the client to request them.
 
-server.js
+To enable HTTP2 we need a certificate since HTTP/2 only works over SSL. We can create a self signing certificate for development purposes using these commands.
+
+I wont even try to explain what is going on here, but it does the job :)
+
+```bash
+mkdir cert
+
+openssl genrsa -des3 -passout pass:x -out cert/server.pass.key 2048
+
+openssl rsa -passin pass:x -in cert/server.pass.key -out cert/server.key
+
+rm cert/server.pass.key
+
+openssl req -new -key cert/server.key -out cert/server.csr
+
+openssl x509 -req -sha256 -days 365 -in cert/server.csr -signkey cert/server.key -out cert/server.crt
+```
+
+`yarn add http2 path fs`
+
+server/index.js
 
 ```js
+// ...
+import http2 from 'http2'
 import path from 'path'
-...
-app.use(webpackMiddleware(compiler))
-// Fallback when no previous route was matched
-app.use('*', (req, res, next) => {
-  const filename = path.resolve(compiler.outputPath, 'index.html')
-  compiler.outputFileSystem.readFile(filename, (err, result) => {
-    if (err) {
-      return next(err)
-    }
-    res.set('content-type', 'text/html')
-    res.send(result)
-    res.end()
-  })
+import fs from 'fs'
+// ...
+
+const options = {
+  key: fs.readFileSync(path.resolve(__dirname, '..', 'cert', 'server.key')),
+  cert: fs.readFileSync(path.resolve(__dirname, '..', 'cert', 'server.crt'))
+}
+const server = http2.createSecureServer(options, app.callback())
+
+server.listen(5501, () => {
+  console.log('Listening over HTTP/2 on https://localhost:5501')
 })
+
+app.listen(5500, () => {
+  console.log('Servering over HTTP/1.1 on http://localhost:5500')
+})
+// ...
 ```
+
+Open https://localhost:5501 in browser and acept the certificate, (Advanced > Add Exception). To verify that we are actually serving our app over HTTP/2, open devTools > Network > Protocol (Right click on header if you don't see it) to make sure "localhost" it loads using H2 (HTTP/2)
 
 ## GraphQL
 
@@ -64,19 +95,16 @@ https://dev.to/aurelkurtula/creating-a-movie-website-with-graphql-and-react-25d4
 
 What is graphQL
 
-`yarn add node-fetch graphql express-graphql dotenv`
-
-/src/helpers/tmdb-fetch.js
-
-```js
-const fetch =
-  typeof window === 'undefined' ? require('node-fetch') : window.fetch
-```
+`yarn add node-fetch graphql koa-graphql koa-mount dotenv`
 
 .env
 
 ```
-TMDB_API_KEY=72e8013728917209a38a06e945fb6a2f
+NODE_ENV=development
+HOST=localhost
+PORT=5500
+SSL_PORT=5501
+TMDB_API_KEY=<your_tmdb_api_key>
 ```
 
 schema/schema.js
@@ -96,40 +124,44 @@ dotenv.config()
 const api = new TMDB(process.env.TMDB_API_KEY)
 ```
 
-api results
+The movie API results we get from TMDB looks something like this for a movie search, using qraphQl we can now redesign the format we want for each type in our new schema.
 
 ```js
 {
-    results: [
-            {
-            vote_count: 3742,
-            id: 284054,
-            video: false,
-            vote_average: 7.3,
-            title: "\"Black Panther\","
-            popularity: 246.001551,
-            poster_path: "/uxzzxijgPIY7slzFvMotPv8wjKA.jpg",
-            original_language: "en",
-            original_title: "\"Black Panther\","
-            genre_ids: [28, 12, 14, 878],
-            backdrop_path: "/b6ZJZHUdMEFECvGiDpJjlfUWela.jpg",
-            adult: false,
-            overview: "King T'Challa returns ....",
-            release_date: "2018-02-13"
-        }
-    ]
+  results: [
+    {
+      vote_count: 3742,
+      id: 284054,
+      video: false,
+      vote_average: 7.3,
+      title: "\"Black Panther\","
+      popularity: 246.001551,
+      poster_path: "/uxzzxijgPIY7slzFvMotPv8wjKA.jpg",
+      original_language: "en",
+      original_title: "\"Black Panther\","
+      genre_ids: [28, 12, 14, 878],
+      backdrop_path: "/b6ZJZHUdMEFECvGiDpJjlfUWela.jpg",
+      adult: false,
+      overview: "King T'Challa returns ....",
+      release_date: "2018-02-13"
+    }
+  ]
 }
 ```
 
 NewMovies (schema/schema.js)
 
 ```js
-const NewMoviesType = new GraphQLObjectType({
-  name: 'NewMovies',
+const Result = new GraphQLObjectType({
+  name: 'Result',
   fields: {
-    id: { type: GraphQLInt },
-    poster_path: { type: GraphQLString },
-    title: '{type: GraphQLString},'
+    id: { type: GraphQLString },
+    poster_path: {
+      type: GraphQLString,
+      resolve: ({ poster_path }) =>
+        poster_path && `https://image.tmdb.org/t/p/w500${poster_path}`
+    },
+    title: { type: GraphQLString }
   }
 })
 ```
@@ -139,18 +171,9 @@ const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: {
     newMovies: {
-      type: new GraphQLList(NewMoviesType),
-      resolve() {
-        return api.get(`/movie/now_playing`).then(data => {
-          const movies = data.results
-          movies.map(
-            movie =>
-              (movie.poster_path =
-                'https://image.tmdb.org/t/p/w500' + movie.poster_path)
-          )
-          return movies
-        })
-      }
+      type: new GraphQLList(Result),
+      resolve: () =>
+        api.get(`/movie/now_playing`).then(data => data.results || [])
     }
   }
 })
@@ -162,24 +185,27 @@ export default new GraphQLSchema({
 })
 ```
 
-server.js
+server/index.js
 
 ```js
-import expressGraphQL from 'express-graphql'
-import schema from './schema/schema' // our schema file
+import mount from 'koa-mount'
+import GraphQL from 'koa-graphql'
+import schema from '../schema/schema' // our schema file
 
-const app = express()
+// ...
 
 app.use(
-  '/graphql',
-  expressGraphQL({
-    schema,
-    graphiql: true
-  })
+  mount(
+    '/graphql',
+    GraphQL({
+      schema,
+      graphiql: true
+    })
+  )
 )
 ```
 
-http://localhost:5500/qraphql
+https://localhost:5501/qraphql
 
 ```gql
 {
@@ -197,15 +223,25 @@ MovieInfo
 const MovieInfoType = new GraphQLObjectType({
   name: 'MovieInfo',
   fields: {
-    id: { type: GraphQLInit },
+    id: { type: GraphQLString },
     overview: { type: GraphQLString },
     title: { type: GraphQLString },
-    poster_path: { type: GraphQLString },
-    genres: { type: GraphQLString },
+    poster_path: {
+      type: GraphQLString,
+      resolve: ({ poster_path }) =>
+        poster_path && `https://image.tmdb.org/t/p/w500${poster_path}`
+    },
+    genres: {
+      type: GraphQLString,
+      resolve: ({ genres }) => genres.map(({ name }) => name).join(', ')
+    },
     release_date: { type: GraphQLString },
     vote_average: { type: GraphQLString },
-    production_companies: { type: GraphQLString },
-    vote_average: { type: GraphQLString },
+    production_companies: {
+      type: GraphQLString,
+      resolve: ({ production_companies }) =>
+        production_companies.map(({ name }) => name).join(', ')
+    },
     runtime: { type: GraphQLString }
   }
 })
@@ -219,16 +255,7 @@ const RootQuery = new GraphQLObjectType({
     movieInfo: {
       type: MovieInfoType,
       args: { id: { type: GraphQLString } },
-      resolve(parentValue, args) {
-        return api.get(`/movie/${args.id}`).then(movie => {
-          movie.genres = movie.genres.map(g => g.name).join(', ')
-          movie.production_companies = movie.production_companies
-            .map(c => c.name)
-            .join(', ')
-          movie.runtime += ' min.'
-          return movie
-        })
-      }
+      resolve: (parentValue, args) => api.get(`/movie/${args.id}`)
     }
   }
 })
@@ -242,7 +269,10 @@ const VideoType = new GraphQLObjectType({
   fields: {
     id: { type: GraphQLString },
     key: { type: GraphQLString },
-    url: { type: GraphQLString }
+    url: {
+      type: GraphQLString,
+      resolve: ({ key }) => key && `https://www.youtube.com/embed/${key}`
+    }
   }
 })
 ```
@@ -256,11 +286,8 @@ const MovieInfoType = new GraphQLObjectType({
     videos: {
       type: new GraphQLList(VideoType),
       args: { id: { type: GraphQLString } },
-      resolve(parentValue, args) {
-        return api
-          .get(`/3/movie/${parentValue.id}/videos`)
-          .then(data => data.results.map(video => {...video, url: `https://www.youtube.com/embed/${video.key}`}))
-      }
+      resolve: ({ id }) =>
+        api.get(`/movie/${id}/videos`).then(data => data.results || [])
     }
   }
 })
@@ -272,6 +299,11 @@ http://localhost:5500/graphql
 {
   movieInfo(id: "284054") {
     title
+    overview
+    poster_path
+    genres
+    release_date
+    production_companies
     videos {
       id
       url
@@ -289,7 +321,11 @@ const MovieCreditsType = new GraphQLObjectType({
     id: { type: GraphQLString },
     character: { type: GraphQLString },
     name: { type: GraphQLString },
-    profile_path: { type: GraphQLString },
+    profile_path: {
+      type: GraphQLString,
+      resolve: ({ profile_path }) =>
+        profile_path && `https://image.tmdb.org/t/p/w200${profile_path}`
+    },
     order: { type: GraphQLString }
   }
 })
@@ -310,26 +346,46 @@ const MovieInfoType = new GraphQLObjectType({
     id: { type: GraphQLString },
     //...
     //videos: { ... },
-    movieReviews: {
+    reviews: {
       type: new GraphQLList(MovieReviewsType),
       args: { id: { type: GraphQLString } },
-      resolve(parentValue, args) {
-        return api
-          .get(`/movie/${parentValue.id}/reviews`)
-          .then(data => data.results)
-      }
+      resolve: ({ id }, args) =>
+        api.get(`/movie/${id}/reviews`).then(data => data.results)
     },
-    movieCredits: {
+    credits: {
       type: new GraphQLList(MovieCreditsType),
       args: { id: { type: GraphQLString } },
-      resolve(parentValue, args) {
-        return api
-          .get(`/movie/${parentValue.id}/credits`)
-          .then(data => data.cast.filter(cast => cast.profile_path))
-      }
+      resolve: ({ id }, args) =>
+        api.get(`/movie/${id}/credits`).then(data => data.cast || [])
     }
   }
 })
+```
+
+### Breaking out custom types
+
+```js
+const Image = new GraphQLObjectType({
+  name: 'Image',
+  description: 'Image resolver returning a small and a large URL',
+  fields: {
+    small: {
+      type: GraphQLString,
+      resolve: image_path =>
+        image_path && `https://image.tmdb.org/t/p/w300${image_path}`
+    },
+    large: {
+      type: GraphQLString,
+      resolve: image_path =>
+        image_path && `https://image.tmdb.org/t/p/w500${image_path}`
+    }
+  }
+})
+
+
+// ... update on all instances for images
+backdrop_path: { type: Image },
+profile_path: { type: Image },
 ```
 
 ### Hook it up to React
@@ -348,27 +404,18 @@ const client = new ApolloClient({
   uri: 'http://localhost:5500/graphql'
 })
 
-const App = () => (
+const Root = () => (
   <Provider store={store}>
     <ApolloProvider client={client}>
       <BrowserRouter>
-        <Switch>
-          <Route exact path="/movies/:id" component={Movie} />
-          <Route component={Home} />
-        </Switch>
+        <App />
       </BrowserRouter>
     </ApolloProvider>
   </Provider>
 )
 ```
 
-`yarn add --dev babel-plugin-transform-decorators graphql-tag`
-
-.babelrc
-
-```
-"plugins": [..., "transform-decorators-legacy"]
-```
+`yarn add graphql-tag`
 
 webpack.config.js
 
@@ -392,7 +439,6 @@ module.exports = {
 ```
 [options]
 esproposal.decorators=ignore
-esproposal.optional_chaining=ignore
 
 module.name_mapper='^\(.*\)$' -> '<PROJECT_ROOT>/src/\1'
 
@@ -407,49 +453,136 @@ query {
   newMovies {
     id
     title
-    poster_path
+    poster_path {
+      small
+    }
   }
 }
 ```
 
+src/containers/newMovies/index.js
+
 ```jsx
+// @flow
 import React, { Component } from 'react'
 import { graphql } from 'react-apollo'
 import newMovies from 'queries/newMovies.gql'
+import Carousel from 'components/Carousel'
+import MovieCard from 'components/MovieCard'
 
-@graphql(newMovies, {
-  //passing parameters based on props
-  options: ({ genre }) => ({
-    variables: { genre }
-  })
-})
-class NewMovies extends Component {
+type MovieResult = {
+  id: string,
+  title: string,
+  poster_path: {
+    small: string,
+    large: string
+  }
+}
+type Props = {
+  data?: {
+    newMovies: Array<MovieResult>
+  }
+}
+
+class NewMovies extends Component<Props> {
   render() {
     const {
       data: { newMovies = [] }
     } = this.props
+
     return (
-      <div>
+      <Carousel>
         {newMovies.map(movie => (
-          <div key={movie.id}>
-            <h3>{movie.title}</h3>
-            <img src={movie.poster_path} />
-          </div>
+          <MovieCard
+            type="movie"
+            key={movie.id}
+            {...movie}
+            image={movie.poster_path.small}
+          />
         ))}
-      </div>
+      </Carousel>
     )
   }
 }
+export default graphql(newMovies)(NewMovies)
 ```
 
-Enable CORS
+### Enable CORS
 
-server.js
+`yarn add @koa/cors`
+
+server/index.js
 
 ```js
-import cors from 'cors'
+import cors from '@koa/cors'
 
 app.use(cors())
+```
+
+## A word on mutations
+
+An other bog part of any API is the possibility to posta nd modify the data in the database. In graphql this is done using Mutations.
+
+In our examples we will not be using any mutations, but for the fun of it, lets define one hypothetically.
+
+(This mutation will however not work since we haven't bothered in requesting session ids from tmdb.)
+
+schema/schema.js (in theory)
+
+```js
+const RootQuery = new GraphQLObjectType({
+  name: 'RootMutationType',
+  description: 'These are the things we can change',
+  fields: () => ({
+    rateMovie: {
+      type: MovieInfoType,
+      description:
+        'Rate the movie between 0 and 10',
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+        value: {type: GraphQLFloat }
+      },
+      resolve: (value, { id, value }) => {
+        return api.post(`/movie/${id}/rating`, {value})
+      }
+    }
+  })
+})
+
+export default new GraphQLSchema({
+  query: RootQuery,
+  mutation: RootMutation
+})
+```
+
+Example usage of graphQL mutation in react component
+
+```js
+import React, { Component } from 'react'
+import { compose, graphql } from 'react-apollo'
+
+class Test extends Component {
+  vote = value => {
+    const {
+      rateMovie, // a named query, mutation gets set as named prop
+      data: {
+        getSingle: { id },
+        refetch // Every query also has a method to refetch()
+      }
+    } = this.props
+    rateMovie({ variables: { id, value } }).then(refetch)
+  }
+  render() {
+    // ...
+  }
+}
+// when using multiple queries, mutations you can compose them
+export default compose(
+  graphql(getSingle),
+  graphql(RateMovieMutation, {
+    name: 'rateMovie'
+  })
+)(Test)
 ```
 
 ## Exercises
@@ -458,6 +591,6 @@ app.use(cors())
 
 - Experiment using http://localhost:5500/graphql and create .gql files for searchMovie and movieInfo
 
-- Update react containers from using Redux middlewares and REST to use graphQL decorators
+- Update react containers from using Redux middlewares and REST to use graphQL instead
 
-- Add description to each endpoint
+- Document the schema using the description key on each type

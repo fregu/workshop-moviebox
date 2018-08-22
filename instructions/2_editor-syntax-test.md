@@ -6,9 +6,7 @@ Set up editor with development environment using syntax checker, flow types and 
 
 Prettier is opinionated code formatter for js, json, css, ... which automatically formats your code for you
 
-```
-yarn add --dev prettier
-```
+`yarn add --dev prettier`
 
 https://prettier.io/docs/en/editors.html
 prettier-atom / prettier-vscode / JsPrettier (sublime)
@@ -60,9 +58,7 @@ yarn add --dev eslint babel-eslint eslint-plugin-babel eslint-plugin-react eslin
 
 By using aliases and root path, we can import modules based on their name instead of their relative location in the file tree '../../components/MyComponent' -> 'components/MyComponent'
 
-```bash
-yarn add --dev babel-plugin-module-resolver
-```
+`yarn add babel-plugin-module-resolver`
 
 .babelrc
 
@@ -86,11 +82,9 @@ yarn add --dev babel-plugin-module-resolver
 ## Allow EcmaScript features
 
 Allowing for other modern standards needs to be specified for babel as well
-We will be using class properties and class properties, solets add support for them
+We will be using class properties and deconstructors, so lets add support for them
 
-```bash
-yarn add --dev babel-plugin-transform-class-properties babel-plugin-transform-decorators-legacy babel-plugin-transform-object-rest-spread
-```
+`yarn add babel-plugin-transform-class-properties babel-plugin-transform-object-rest-spread`
 
 .babelrc
 
@@ -100,21 +94,12 @@ yarn add --dev babel-plugin-transform-class-properties babel-plugin-transform-de
   "plugins": [
     ... ,
     "transform-class-properties",
-    "transform-decorators-legacy",
     "transform-object-rest-spread"
   ]
 }
 ```
 
-.flowconfig
-
-```
-[options]
-esproposal.decorators=ignore
-...
-```
-
-## Jest
+## Jest and React testing library
 
 Jest is a JavaScript testing library built for React which makes automated testing easy. It is also a great way of defining the purpose of your components before writing the component, making sure it does what is is supposed to. And allerts you when that functionality breaks.
 
@@ -161,9 +146,7 @@ test('Test component shows content', () => {
 })
 ```
 
-```bash
-yarn test
-```
+`yarn test`
 
 ### What should you unit test?
 

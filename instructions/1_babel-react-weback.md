@@ -79,7 +79,8 @@ Webpack is a asset bundler which we use to parse, build and serve our applicatio
 This is our app, for now
 
 ```bash
-yarn add webpack webpack-cli html-webpack-plugin webpack-dev-server
+yarn add webpack
+yarn add --dev webpack-cli html-webpack-plugin webpack-dev-server
 ```
 
 webpack.config.js
@@ -104,8 +105,8 @@ module.exports = {
 ```
 
 ```bash
-npm run start
-npm run build
+yarn start
+yarn build
 ```
 
 check dist folder
@@ -176,7 +177,6 @@ By adding specific loaders to webpack.config.js we tell webpack how to handle ot
 
 ```bash
 yarn add style-loader css-loader
-yarn add postcss-loader postcss-import postcss-preset-env cssnano
 ```
 
 webpack.config.js
@@ -222,6 +222,8 @@ import styles from './index.css'
 
 export default () => <div className={styles['App']} />
 ```
+
+! However for the rest of this workshop we will not use CSS modules, no lets set modules to fale for now.
 
 ### Images, Fonts, Icons
 

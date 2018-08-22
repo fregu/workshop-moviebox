@@ -18,7 +18,7 @@ module.exports = merge(common, {
 ```
 
 ```bash
-yarn add --dev webpack-merge uglifyjs-webpack-plugin mini-css-extract-plugin optimize-css-assets-webpack-plugin
+yarn add webpack-merge uglifyjs-webpack-plugin mini-css-extract-plugin optimize-css-assets-webpack-plugin
 ```
 
 webpack.prod.js
@@ -90,7 +90,7 @@ package.json
 <link rel="icon" type="image/png" href="favicon-196x196.png" sizes="196x196" />
 ```
 
-## Manifest
+## Web app manifest
 
 `yarn add webpack-pwa-manifest`
 webpack.prod.js
@@ -197,6 +197,77 @@ function htmlTemplate({
   `
 }
 ```
+
+## Service worker and offline caching
+
+(https://developers.google.com/web/fundamentals/primers/service-workers/)
+
+```js
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').then(
+      function(registration) {
+        // Registration was successful
+        console.log(
+          'ServiceWorker registration successful with scope: ',
+          registration.scope
+        )
+      },
+      function(err) {
+        // registration failed :(
+        console.log('ServiceWorker registration failed: ', err)
+      }
+    )
+  })
+}
+```
+
+sw.js
+
+```js
+var CACHE_NAME = 'movie-cache-v1'
+var urlsToCache = ['/', '/public/styles.css', '/public/main.js']
+
+self.addEventListener('install', function(event) {
+  // Perform install steps
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(function(cache) {
+      console.log('Opened cache')
+      return cache.addAll(urlsToCache)
+    })
+  )
+})
+
+self.addEventListener('fetch', function(event) {
+  event.respondWith(
+    caches.match(event.request).then(function(response) {
+      // Cache hit - return response
+      if (response) {
+        return response
+      }
+      return fetch(event.request)
+    })
+  )
+})
+```
+
+### Add to home screen
+
+(https://developers.google.com/web/fundamentals/app-install-banners/)
+What is the criteria?
+In order for a user to be able to install your Progressive Web App, it needs to meet the following criteria:
+
+- The web app is not already installed
+- Meets a user engagement heuristic (currently, the user has interacted with the domain for at least 30 seconds)
+- Includes a web app manifest that includes:
+  - short_name or name
+  - icons must include a 192px and a 512px sized icons
+  - start_url
+  - display must be one of: fullscreen, standalone, or minimal-ui
+- Served over HTTPS (required for service workers)
+- Has registered a service worker with a fetch event handler
+
+## Deploying your app
 
 Procfile
 
