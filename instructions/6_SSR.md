@@ -30,13 +30,13 @@ dotenv.config()
 
 export default async (ctx, next) => {
   // non SSL uri for SSR requests, server cant accept certificates
-  const graphqlUrlLocal = `http://${process.env.HOST}:${
-    process.env.PORT
-  }/graphql`
+  const graphqlUrlLocal = `http://${process.env.HOST}/graphql`
 
   // graphql uri for Client requests to server depending on
-  const graphqlUrl = `${ctx.protocol}://${process.env.HOST}:${
-    ctx.protocol === 'https' ? process.env.SSL_PORT : process.env.PORT
+  const graphqlUrl = `${ctx.protocol}://${
+    ctx.protocol === 'https' && process.env.SSL_HOST
+      ? process.env.SSL_HOST
+      : process.env.HOST
   }/graphql`
 
   // A context for StaticRouter to define paths and rules
@@ -115,13 +115,20 @@ export default function htmlTemplate({
   helmetData,
   graphqlUrl
 }) {
+  const stateScript = `
+    <script>
+      window.__REDUX_STATE__ = ${JSON.stringify(reduxState)}
+      window.__APOLLO_STATE__ = ${JSON.stringify(apolloState)}
+      window.graphqlUrl = '${graphqlUrl}'
+    </script>
+  `
   return `
     <!DOCTYPE html>
     <html ${helmetData.htmlAttributes.toString()}>
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="/public/style.css" />
+        <link rel="stylesheet" href="/style.css" />
         ${helmetData.title.toString()}
         ${helmetData.meta.toString()}
         ${helmetData.link.toString()}
@@ -133,41 +140,37 @@ export default function htmlTemplate({
         <div id="root">${reactDom}</div>
 
         ${helmetData.script.toString()}
-        <script src="/public/main.js"></script>
+        ${stateScript /* must be inserted before main.js */}
+        <script src="/main.js"></script>
     </body>
     </html>
   `
 }
 ```
 
-We then crete a new webpack config file with the purpose of transpiling the ssr.js file, since it in turn import `<App />`
+---
 
-webpack.ssr.js
+For production and SSR we want to have uor CSS files exported, but in development we still want webpack to handle them in style loader. So it is time to split up our config files in webpack.common.js, webpack.dev.js, webpack.prod.js and webpack.ssr.js
+
+webpack.common.js, is a stripped version basically setting up our loaders. We export it as a function where we can call it with either 'development' or 'production' mode, resulting in style-loader or MiniCssExtractPlugin.loader.
+
+`yarn add webpack-merge mini-css-extract-plugin`
 
 ```js
 const path = require('path')
 
-module.exports = {
-  entry: './server/ssr.js',
-  output: {
-    library: 'ssr',
-    libraryTarget: 'umd',
-    publicPath: '/',
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'ssr.js'
+module.exports = mode => ({
+  entry: {
+    main: './src/index.js'
   },
-  target: 'node',
-  resolve: {
-    extensions: ['.wasm', '.mjs', '.js', '.json', '.gql', '.svg']
+  mode,
+  output: {
+    publicPath: '/assets',
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'main.js'
   },
   module: {
     rules: [
-      // .mjs is a new standard for ES modules, which are pretty commin in dependencies
-      {
-        test: /\.mjs$/,
-        include: /node_modules/,
-        type: 'javascript/auto'
-      },
       {
         test: /\.js$/,
         exclude: /node_modules/,
@@ -175,10 +178,30 @@ module.exports = {
           loader: 'babel-loader'
         }
       },
-      // In this case we want to ignore CSS altogether, instead relying on pre build dist/style.css
+      // working with node modules .mjs is a common type we also need to handle
+      {
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto'
+      },
       {
         test: /\.css$/,
-        use: 'null-loader'
+        use: [
+          mode === 'development'
+            ? 'style-loader'
+            : require('mini-css-extract-plugin').loader,
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              ident: 'postcss',
+              plugins: [
+                require('postcss-import')(),
+                require('postcss-preset-env')()
+              ]
+            }
+          }
+        ]
       },
       {
         test: /\.(graphql|gql)$/,
@@ -201,7 +224,8 @@ module.exports = {
             query: {
               name: 'img/[name].[hash].[ext]'
             }
-          }
+          },
+          'image-webpack-loader'
         ]
       },
       {
@@ -219,74 +243,142 @@ module.exports = {
       }
     ]
   }
-}
+})
 ```
 
-We also need to update uor defaul webpack config to extract CSS to a file (dist/style.css)
-`yarn add mini-css-extract-plugin`
-
-webpack.config.js
+webpack.dev.js, is used with dev server and hot module reloading
 
 ```js
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const merge = require('webpack-merge')
+const common = require('./webpack.common.js')('development')
+const HtmlWebPackPlugin = require('html-webpack-plugin')
 
-// ...
-module.exports = {
-  mode: 'production',
-  output: {
-    publicPath: '/'
-  },
-
-  // add source maps to our bundles making debugging much easier
-  devtool: 'source-map',
-  module: {
-    rules: [
-      // ...
-      {
-        test: /\.css$/,
-        use: [
-          MiniCssExtractPlugin.loader, // replace 'style-loader',
-          {
-            loader: 'css-loader'
-            // ...
-          },
-          {
-            loader: 'postcss-loader'
-            // ...
-          }
-        ]
-      }
-      // ...
-    ]
+module.exports = merge(common, {
+  devtool: 'inline-source-map',
+  devServer: {
+    contentBase: './dist'
   },
   plugins: [
-    // ...
-    // And define the plugin with output options
+    new HtmlWebPackPlugin({
+      template: './src/index.html'
+    })
+  ]
+})
+```
+
+webpack.prod.js, deines the filename we want for our css
+
+```js
+const merge = require('webpack-merge')
+const common = require('./webpack.common.js')('production')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+
+module.exports = merge(common, {
+  plugins: [
     new MiniCssExtractPlugin({
       filename: 'style.css'
     })
   ]
+})
+```
+
+We then create a new webpack config file with the purpose of transpiling the server/ssr.js file, since it in turn will import `<App />` and the rest of the application
+
+`yarn add null-loader`
+
+webpack.ssr.js
+
+```js
+const config = require('./webpack-config')
+const path = require('path')
+
+module.exports = {
+  entry: './server/ssr.js',
+  output: {
+    library: 'ssr',
+    libraryTarget: 'umd', // export as importable UMD-module
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'ssr.js'
+  },
+  target: 'node',
+  mode: 'production',
+
+  // Use loaders from webpack-config, except css loader
+  module: config.module.rules.map(
+    rule => ('.css'.match(rule.test) ? { ...rule, use: 'null-loader' } : rule)
+  )
 }
 ```
 
-Add our new bundle as a middleware, and remove all webpack associations from server/index.js
+Now if we run `webpack --config webpack.ssr.js` a new ssr.js bundle will be written to dist, which we then could import and use as a koa middleware
+server/index.js
 
-`yarn add koa-static`
+```js
+import ssr from '../dist/ssr'
+// ...
+app.use(ssr)
+```
+
+But the problem with this is that we need to ensure that webpack.ssr.js always has run before we start the server. So instead, we can compile it in a in memory filesystem and add the result to koa as a middleware, when we start up the server. But to limit memory usage in production server, use dist version there.
+
+First clean up the previous webpack compiler
 `yarn remove koa-webpack-dev-middleware`
+
+`yarn add koa-static memory-fs require-from-string`
 
 server/index.js
 
 ```js
-import serve from 'koa-static'
-import ssr from '../dist/ssr'
-
 // ...
-app.use(mount('/public', serve(path.resolve(__dirname, '..', 'dist'))))
+//- import webpackMiddleware from 'koa-webpack-dev-middleware'
+import serve from 'koa-static'
 
-app.use(ssr)
+// serve static files from dist with public path /
+app.use(mount('/assets', serve(path.resolve(__dirname, '..', 'dist'))))
+
+//- const compiler = webpack(webpackConfig)
+//- app.use(webpackMiddleware(compiler))
+
+if (process.env.NODE_ENV === 'development') {
+  const webpack = require('webpack')
+  const MemoryFileSystem = require('memory-fs')
+  const ssrConfig = require('../webpack.ssr.js')
+  const requireFromString = require('require-from-string')
+
+  const memoryFs = new MemoryFileSystem()
+  const ServerCompiler = webpack(ssrConfig)
+
+  // Define file system to be in memory for compiler instead
+  ServerCompiler.outputFileSystem = memoryFs
+
+  // Start the compiler and require the file from memory
+  ServerCompiler.run((err, stats) => {
+    if (err) {
+      throw err
+    }
+    const contents = memoryFs.readFileSync(
+      path.resolve(ssrConfig.output.path, ssrConfig.output.filename),
+      'utf8'
+    )
+
+    const ssr = requireFromString(contents, ssrConfig.output.filename)
+
+    // Use SSR from memory-fs
+    app.use(ssr.default)
+  })
+} else {
+  const ssr = require(path.resolve(
+    ssrConfig.output.path,
+    ssrConfig.output.filename
+  ))
+
+  // Use SSR from ../dist/ssr.js
+  app.use(ssr.default)
+}
+// ...
 ```
 
-Now we do all fetching and server side, we nned to let the client know what th ecurrent state is.
+Now we do all fetching and server side, we need to let the client know what th ecurrent state is.
 
 We also need to replace ReactDOM.render with ReactDOM.hydrate, it is basically the same thing, but tells the client to attach eventlisteners to already rendered DOM.
 
@@ -302,9 +394,10 @@ const client = new ApolloClient({
   cache: new InMemoryCache().restore(window.__APOLLO_STATE__ || {})
 })
 
-delete window.__REDUX_STATE__ // eslint-disable-line
-delete window.__APOLLO_STATE__ // eslint-disable-line
-delete window.graphqlUrl // eslint-disable-line
+// clean up globals
+delete window.__REDUX_STATE__
+delete window.__APOLLO_STATE__
+delete window.graphqlUrl
 
 const Root = () => (
   // ...
@@ -327,19 +420,21 @@ package.json
   "lint": "eslint src",
   "flow": "flow",
   "dev": "npm-run-all --parallel server devserver",
-  "devserver": "webpack-dev-server --history-api-fallback --open",
+  "devserver": "webpack-dev-server --config webpack.dev.js --hot --history-api-fallback --open",
   "start": "npm-run-all --parallel watch:server watch:build devserver",
-  "build": "webpack --config webpack.config.js --config webpack.ssr.js",
+  "build": "webpack --config webpack.prod.js",
+  "build:ssr": "webpack --config webpack.ssr.js",
   "server": "babel-node server",
   "start:server": "yarn build && yarn server",
-  "watch:server": "nodemon --exec babel-node server --ignore src",
-  "watch:build": "yarn build --watch",
-  "build:prod": "webpack --config webpack.config.js",
-  "build:ssr": "webpack --config webpack.ssr.js"
+  "watch:server": "nodemon --exec babel-node server --ignore dist --no-info",
+  "watch:build": "yarn build --watch --ignore dist"
 }
 ```
 
 `yarn start` will now start graphQL/SSR server, build assets and start webpack dev derver, and keep watching for file changes.
+Good for working with entire stack.
+
+`yarn dev` will just start up the server and rely on webpack-dev-server update. Good for working with components and application.
 
 http://localhost:8080 // Dev server with HMR
 http://localhost:5500 // HTTP/1.1 SSR server width graphQL endpoint

@@ -7,14 +7,14 @@ First we need to add history-api-fallback parameter to webpack-dev-server to let
 package.json
 `"start": "webpack-dev-server --mode development --open --history-api-fallback",`
 
-In webpack we define a root path, allowing us to import assets from a root
+In webpack we define a root path, allowing us to import assets using it as root
 
 webpack.config.js
 
 ```js
 module.expoerts = {
   output: {
-    publicPath: '/'
+    publicPath: '/assets'
   }
   // ...
 }
@@ -215,51 +215,6 @@ We also have utility classnames which can be used for a single purpose extended 
 `text-large theme-dark layout-bottom-padding flex-fill`
 
 These classes can be used to handle all definition of font, colors, and basic layout, making it uneccessary defining this in the component styling. Insted just sprinkle some extra class names to define colors, text size, widths etc. keeping each style section clean with a single purpose.
-
-### PostCSS
-
-PostCSS is an excellent CSS precompiler allowing us to use the great features of tomorrow today.
-
-We will use it to aitomatically add vendor prefixes and alternative implementation of specific styling, handle custom media queries, and handling importing and optimizations.
-
-`yarn add postcss postcss-loader postcss-import postcss-preset-env`
-webpack.config.js
-
-```js
-//...
-{
-  test: /\.css$/,
-  use: [
-    'style-loader',
-    {
-      loader: 'css-loader',
-      options: {
-        importLoaders: 1,
-        minimize: false,
-        sourceMap: false
-      }
-    },
-    {
-      loader: 'postcss-loader',
-      options: {
-        plugins: [
-          // IS THIS HANDLING THE @imports??
-          require('postcss-import')(),
-          require('postcss-preset-env')({
-            features: {
-              'nesting-rules': true,
-              'custom-media-queries': true
-            }
-          })
-        ],
-        sourceMap: true,
-        ident: 'postcss'
-      }
-    }
-  ]
-}
-//...
-```
 
 ### Storybook
 

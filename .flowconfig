@@ -7,8 +7,6 @@
 [lints]
 
 [options]
-esproposal.decorators=ignore
-esproposal.optional_chaining=ignore
 
 module.name_mapper='^\(.*\)$' -> '<PROJECT_ROOT>/src/\1'
 

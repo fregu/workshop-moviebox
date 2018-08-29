@@ -101,10 +101,19 @@ What is graphQL
 
 ```
 NODE_ENV=development
-HOST=localhost
+HOST=localhost:5500
+SSL_HOST=localhost:5501
 PORT=5500
 SSL_PORT=5501
 TMDB_API_KEY=<your_tmdb_api_key>
+```
+
+We do not want to sharew our environmental variables
+
+.gitignore
+
+```
+.env
 ```
 
 schema/schema.js
@@ -228,19 +237,19 @@ const MovieInfoType = new GraphQLObjectType({
     title: { type: GraphQLString },
     poster_path: {
       type: GraphQLString,
-      resolve: ({ poster_path }) =>
-        poster_path && `https://image.tmdb.org/t/p/w500${poster_path}`
+      resolve: ({ poster_path: posterPath }) =>
+        posterPath && `https://image.tmdb.org/t/p/w500${poster_path}`
     },
     genres: {
       type: GraphQLString,
-      resolve: ({ genres }) => genres.map(({ name }) => name).join(', ')
+      resolve: ({ genres = [] }) => genres.map(({ name }) => name).join(', ')
     },
     release_date: { type: GraphQLString },
     vote_average: { type: GraphQLString },
     production_companies: {
       type: GraphQLString,
-      resolve: ({ production_companies }) =>
-        production_companies.map(({ name }) => name).join(', ')
+      resolve: ({ production_companies: productionCompanies = [] }) =>
+        productionCompanies.map(({ name }) => name).join(', ')
     },
     runtime: { type: GraphQLString }
   }
@@ -323,8 +332,8 @@ const MovieCreditsType = new GraphQLObjectType({
     name: { type: GraphQLString },
     profile_path: {
       type: GraphQLString,
-      resolve: ({ profile_path }) =>
-        profile_path && `https://image.tmdb.org/t/p/w200${profile_path}`
+      resolve: ({ profile_path: profilePath }) =>
+        profilePath && `https://image.tmdb.org/t/p/w200${profilePath}`
     },
     order: { type: GraphQLString }
   }
@@ -371,13 +380,13 @@ const Image = new GraphQLObjectType({
   fields: {
     small: {
       type: GraphQLString,
-      resolve: image_path =>
-        image_path && `https://image.tmdb.org/t/p/w300${image_path}`
+      resolve: imagePath =>
+        imagePath && `https://image.tmdb.org/t/p/w300${imagePath}`
     },
     large: {
       type: GraphQLString,
-      resolve: image_path =>
-        image_path && `https://image.tmdb.org/t/p/w500${image_path}`
+      resolve: imagePath =>
+        imagePath && `https://image.tmdb.org/t/p/w500${imagePath}`
     }
   }
 })
@@ -385,6 +394,7 @@ const Image = new GraphQLObjectType({
 
 // ... update on all instances for images
 backdrop_path: { type: Image },
+poster_path: { type: Image },
 profile_path: { type: Image },
 ```
 

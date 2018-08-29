@@ -8,7 +8,7 @@ Create a new folder for our project
 mkdir moviebox && cd $_
 
 yarn init -y
-npm init -y
+# (npm init -y)
 ```
 
 ## Git
@@ -38,6 +38,7 @@ dist
 Make sure you have an updated version of node js running, since we will use node for installing dependencies and building assets and later hosting our web application.
 
 ```bash
+# check node version
 node -v
 ```
 
@@ -72,15 +73,15 @@ src/index.js
 console.log('Hello JavaScript')
 ```
 
-### Setup webpack 4
+### Setup webpack
 
 Webpack is a asset bundler which we use to parse, build and serve our application
 
 This is our app, for now
 
 ```bash
-yarn add webpack
-yarn add --dev webpack-cli html-webpack-plugin webpack-dev-server
+yarn add webpack webpack-cli html-webpack-plugin
+yarn add --dev webpack-dev-server
 ```
 
 webpack.config.js
@@ -97,6 +98,8 @@ module.exports = {
 }
 ```
 
+package.json
+
 ```json
   "scripts": {
     "start": "webpack-dev-server --mode development --open",
@@ -105,7 +108,10 @@ module.exports = {
 ```
 
 ```bash
+# Start up dev server and run application from memory
 yarn start
+
+# Compile app and export html and js to /dist
 yarn build
 ```
 
@@ -113,7 +119,7 @@ check dist folder
 
 ### Setting up React
 
-To start using something more complex like React, we need to precompile our JSX and ES6 code to good old ES5 code which all browsers understand. For this we need Babel with certain loaders.
+To start using something a bit more complex like React, we need to precompile our JSX and ES6 code to good old ES5 code which all browsers understand. For this we need Babel with certain loaders.
 
 Also remember to install the React DevTools extension to your browser to be able to browse the virtual DOM and lookup the properties and state of each component in real time.
 
@@ -121,12 +127,13 @@ Also remember to install the React DevTools extension to your browser to be able
 yarn add react react-dom
 
 # Babel with presets and loader to understand JSX and ES6+
-yarn add babel-core babel-loader babel-preset-env babel-preset-react
+yarn add @babel/core @babel/preset-env @babel/preset-react babel-loader
 ```
 
 webpack.config.js
 
 ```js
+// ...
 module.exports = {
   module: {
     rules: [
@@ -140,6 +147,7 @@ module.exports = {
       }
     ]
   }
+  // ...
 }
 ```
 
@@ -148,14 +156,17 @@ Tell babel to expect ES6 and JSX
 
 ```js
 {
-  "presets": ["env", "react"]
+  "presets": [
+    "@babel/preset-env",
+    "@babel/preset-react"
+  ]
 }
 ```
 
-index.js
+src/index.js
 
 ```js
-// React is needed to be able to write JSX
+// React is needed to be imported to be able to write JSX
 import React from 'react'
 import ReactDOM from 'react-dom'
 
@@ -182,17 +193,21 @@ yarn add style-loader css-loader
 webpack.config.js
 
 ```js
-    //...,
-    {
-      test: /\.css$/,
-      use: ["style-loader", "css-loader"]
-    }
-  ]
-},
-// ...
+module.exports = {
+  module: {
+    rules: [
+      //... ,
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      }
+    ]
+  }
+  // ...
+}
 ```
 
-index.css
+src/index.css
 
 ```css
 html {
@@ -200,10 +215,16 @@ html {
 }
 ```
 
+src/index.js
+
+```js
+import './index.css'
+```
+
 #### CSS modules
 
 Whether or not to user CSS modules is a hot topic in the biz. If you are into
-that, this is how you easily can accomplish it
+that, this is how you easily can accomplish it.
 
 webpack.config.js
 
@@ -217,18 +238,20 @@ use: [
 ]
 ```
 
+When using CSS modules importing css will result in a new generated className like class="App\_\_jkgu68", which is why we also need to set the className of each element based on the css module eg.
+
 ```js
 import styles from './index.css'
 
 export default () => <div className={styles['App']} />
 ```
 
-! However for the rest of this workshop we will not use CSS modules, no lets set modules to fale for now.
+! However for the rest of this workshop we will not use CSS modules, no lets set modules to false for now.
 
 ### Images, Fonts, Icons
 
 You can import other file types as well from
-`yarn add file-loader svg-inline-loader`
+`yarn add file-loader svg-inline-loader image-webpack-loader`
 
 webpack.config.js
 
@@ -253,7 +276,8 @@ module.exports = {
             query: {
               name: 'img/[name].[hash].[ext]'
             }
-          }
+          },
+          'image-webpack-loader'
         ]
       },
       {
@@ -291,3 +315,165 @@ export default () => (
   </div>
 )
 ```
+
+### PostCSS
+
+PostCSS is an excellent CSS precompiler allowing us to use the great features of tomorrow today, almost like Babel but for CSS.
+
+We will use it to aitomatically add vendor prefixes and alternative implementation of specific styling, handle custom media queries, and handling importing and optimizations.
+
+`yarn add postcss postcss-loader postcss-import postcss-preset-env`
+
+webpack.config.js
+
+```js
+//...
+{
+  test: /\.css$/,
+  use: [
+    'style-loader',
+    {
+      loader: 'css-loader',
+      options: {
+        // allow postcss-loader to also parse @imported styles
+        importLoaders: 1
+      }
+    },
+    {
+      loader: 'postcss-loader',
+      options: {
+        plugins: [
+          // resolves @import statements replacing them with actual content
+          require('postcss-import')({ skipDuplicates: true }),
+
+          // handle most common rules like autoprefixing, resolving variables, colors and custom media queries
+          require('postcss-preset-env')({
+            features: {
+              'nesting-rules': true,
+              'custom-media-queries': true
+            }
+          })
+        ],
+
+        // Allow dev tools to see origin in minified assets
+        sourceMap: true,
+
+        // identifier
+        ident: 'postcss'
+      }
+    }
+  ]
+}
+//...
+```
+
+This allows us to make much more of our CSS than standard CSS, but still following proposed CSS standards, making other syntax languages like Sass and Less mostly obsolete.
+
+```css
+@custom-media --viewport-medium (width <= 50rem);
+@custom-selector :--heading h1, h2, h3, h4, h5, h6;
+
+:root {
+  --mainColor: #12345678;
+}
+
+body {
+  color: var(--mainColor);
+  font-family: system-ui;
+  overflow-wrap: break-word;
+}
+
+::placeholder {
+  color: gray;
+}
+
+:--heading {
+  background-image: image-set(
+    url(img/heading.png) 1x,
+    url(img/heading@2x.png) 2x
+  );
+
+  @media (--viewport-medium) {
+    margin-block: 0;
+  }
+}
+
+a {
+  color: rebeccapurple;
+
+  &:hover {
+    color: color-mod(var(--mainColor) alpha(80%));
+  }
+}
+
+/* becomes */
+
+:root {
+  --mainColor: rgba(18, 52, 86, 0.47059);
+}
+
+body {
+  color: rgba(18, 52, 86, 0.47059);
+  color: var(--mainColor);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+    Oxygen, Ubuntu, Cantarell, Droid Sans, Helvetica Neue;
+  word-wrap: break-word;
+}
+
+::-webkit-input-placeholder {
+  color: gray;
+}
+:-ms-input-placeholder {
+  color: gray;
+}
+::-ms-input-placeholder {
+  color: gray;
+}
+::placeholder {
+  color: gray;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  background-image: url(img/heading.png);
+}
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    background-image: url(img/heading@2x.png);
+  }
+}
+
+@media (max-width: 50rem) {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
+a {
+  color: #639;
+}
+
+a:hover {
+  color: rgba(18, 52, 86, 0.8);
+}
+```
+
+Now we have a very basic but good foundation of building a complex application. Depending on the needs for each application you might need to configure loaders for different file types and special setting of how you want webpack to handle them for you.
+
+As a rule of thumb you can think that when you want to import something, you need to configure how in webpack.config.js, but if you want to use some special syntax or methods (not available in EcmaScript5) you will need to transpile it using Babel.
